@@ -1,0 +1,141 @@
+<?php
+/**
+ * Template for displaying template list in checkout. Initializes a javascript controller that uses the Ingenico
+ * Client SDK to fetch payment products and displays them using the following <template> elements.
+ *
+ * Uses the Inline Javascript controller to display additional fields with the payment methods.
+ *
+ * @var Netresearch_Epayments_Block_Form_CheckoutMethods $this
+ */
+
+/**
+ * Instantiate SDK session via ePayments API.
+ */
+$sessionData = $this->getSessionData(); ?>
+
+<script type="application/javascript">
+    window.epaymentsController = new InlineController(
+        "<?php echo $sessionData->clientSessionId; ?>",
+        "<?php echo $sessionData->customerId; ?>",
+        "<?php echo $sessionData->assetUrl; ?>",
+        "<?php echo $sessionData->clientApiUrl; ?>",
+        <?php echo $this->getQuote()->getBaseGrandTotal() * 100; ?>,
+        "<?php echo $this->getQuote()->getBaseCurrencyCode(); ?>",
+        "<?php echo $this->getQuote()->getBillingAddress()->getCountryId(); ?>",
+        <?php echo $this->getQuote()->hasRecurringItems() ? 'true' : 'false';?>,
+        "<?php echo $this->getLocale(); ?>",
+        <?php echo json_encode($this->getProductGroupTitles()); ?>
+    );
+    <?php if ($this->isOneStepCheckout()) : ?>
+    document.addEventListener("DOMContentLoaded", function(event) {
+        window.epaymentsController.execute();
+    });
+    <?php else : ?>
+    window.epaymentsController.execute();
+    <?php endif; ?>
+</script>
+
+<ul class="form-list gc-list"
+    id="payment_form_<?php echo $this->getMethodCode() ?>"
+    style="display:none;">
+    <li>
+        <ul id="ingenico_groups_container"></ul>
+    </li>
+</ul>
+
+<template id="ingenico_group">
+    <div class="group">
+        <dt class="group_name"></dt>
+        <div class="method_container"></div>
+    </div>
+</template>
+
+<template id="ingenico_method">
+    <li class="product">
+        <input type="radio"
+               name="payment[gc_payment_product_id]"
+               class="ingenico_payment_product_selector product_selector validate-one-required-by-name"
+        />
+        <label class="product_input_label">
+            <img src=""
+                 height="40"
+                 class="product_logo"/>
+            <span class="product_label"></span>
+        </label>
+        <ul class="product_fields"></ul>
+    </li>
+</template>
+
+<template id="ingenico_inline_field">
+    <li class='ingenico_field'>
+        <label></label>
+        <div class='input-box'>
+            <input class="validate-ingenico"/>
+        </div>
+    </li>
+</template>
+
+<template id="ingenico_inline_select">
+    <li class='ingenico_field'>
+        <label></label>
+        <div class='input-box'>
+            <select class="validate-ingenico"></select>
+        </div>
+    </li>
+</template>
+
+<template id="ingenico_inline_checkbox">
+    <li>
+        <p class="control ingenico_field">
+            <input type="checkbox"
+                   class="checkbox"/>
+            <label></label>
+        </p>
+
+    </li>
+</template>
+
+<template id="ingenico_method_alias">
+    <li class="alias">
+        <input type="radio"
+               name="payment[gc_payment_product_id]"
+               class="ingenico_payment_product_selector alias_selector validate-one-required-by-name"
+        />
+        <label>
+            <img class="alias_logo"
+                 src=""
+                 height="40">
+            <span class="alias_label"></span>
+        </label>
+        <ul class="alias_attributes" style="display:none"></ul>
+    </li>
+</template>
+
+<template id="ingenico_loading_indicator">
+    <span class="please-wait ingenico-please-wait">
+        <img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>"
+             class="v-middle">
+        <span class="loading-text"></span>
+    </span>
+</template>
+
+<template id="ingenico_tooltip">
+    <li class="ingenico_field">
+        <a href="#"
+           class="tooltip-open">?</a>
+    </li>
+    <div class="tooltip"
+         style="display: none;">
+        <a class="tooltip-close"
+           href="#"
+           title="<?php echo $this->__('Close') ?>"><?php echo $this->__('Close') ?></a>
+        <div class="tool-tip-content">
+            <p></p>
+            <img/>
+        </div>
+    </div>
+</template>
+
+<template id="ingenico_hidden_input">
+    <input type="hidden" name="" value="">
+</template>

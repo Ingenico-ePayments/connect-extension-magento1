@@ -1,0 +1,78 @@
+<?php
+/**
+ * Template for displaying template list in checkout. Initializes a javascript controller that uses the Ingenico
+ * Client SDK to fetch payment products and displays them using the following <template> elements.
+ *
+ * @var Netresearch_Epayments_Block_Form_CheckoutMethods $this
+ */
+
+/**
+ * Instantiate SDK session via ePayments API.
+ */
+$sessionData = $this->getSessionData(); ?>
+
+<script type="application/javascript">
+    window.epaymentsController = new RedirectController(
+        "<?php echo $sessionData->clientSessionId; ?>",
+        "<?php echo $sessionData->customerId; ?>",
+        "<?php echo $sessionData->assetUrl; ?>",
+        "<?php echo $sessionData->clientApiUrl; ?>",
+        <?php echo $this->getQuote()->getBaseGrandTotal() * 100; ?>,
+        "<?php echo $this->getQuote()->getBaseCurrencyCode(); ?>",
+        "<?php echo $this->getQuote()->getBillingAddress()->getCountryId(); ?>",
+        <?php echo $this->getQuote()->hasRecurringItems() ? 'true' : 'false';?>,
+        "<?php echo $this->getLocale(); ?>",
+        <?php echo json_encode($this->getProductGroupTitles()); ?>
+    );
+
+    <?php if ($this->isOneStepCheckout()) : ?>
+    document.addEventListener("DOMContentLoaded", function(event) {
+        window.epaymentsController.execute();
+    });
+    <?php else : ?>
+    window.epaymentsController.execute();
+    <?php endif; ?>
+</script>
+
+<ul class="form-list gc-list"
+    id="payment_form_<?php echo $this->getMethodCode() ?>"
+    style="display:none;">
+    <li>
+        <ul id="ingenico_groups_container"></ul>
+    </li>
+</ul>
+
+<template id="ingenico_group">
+    <div class="group">
+        <dt class="group_name"></dt>
+        <div class="method_container"></div>
+    </div>
+</template>
+
+<template id="ingenico_method">
+    <li class="product">
+        <input type="radio"
+               name="payment[gc_payment_product_id]"
+               class="ingenico_payment_product_selector product_selector validate-one-required-by-name"
+        />
+        <label class="product_input_label">
+            <img src=""
+                 height="40"
+                 class="product_logo"/>
+            <span class="product_label"></span>
+        </label>
+        <ul class="product_fields"></ul>
+    </li>
+</template>
+
+<template id="ingenico_loading_indicator">
+    <span class="please-wait ingenico-please-wait">
+        <img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>"
+             class="v-middle">
+        <span class="loading-text"></span>
+    </span>
+</template>
+
+<template id="ingenico_hidden_input">
+    <input type="hidden" name="" value="">
+</template>

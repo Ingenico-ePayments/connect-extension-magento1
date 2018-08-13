@@ -1,0 +1,9 @@
+<?php
+/**
+ * @see Netresearch_Epayments_Block_Info_HostedCheckout
+ */
+?>
+<p>
+    <?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?>
+    <?php if($this->getPaymentProductLabel()) echo ' - ' . $this->getPaymentProductLabel(); ?>
+</p>

@@ -1,0 +1,139 @@
+<layout version="0.1.0">
+    <checkout_onepage_index>
+        <reference name="head">
+            <action method="addCss">
+                <stylesheet>css/ingenico_epayments/checkout.css</stylesheet>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/lib/connectsdk.min.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/sdk-client.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/product-groups.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/repository/payment-products.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/repository/accounts-on-file.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/product-field-validator.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/tooltips.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/payload-factory.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/paymentdata/generic-processor.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/paymentdata/inline-processor.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/paymentdata/redirect-processor.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/controller/checkout/abstract.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/controller/checkout/redirect.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/controller/checkout/inline.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/alias.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/product-group.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/payment-product.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/product-fields.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/loading-indicator.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/input/hidden.js</script>
+            </action>
+        </reference>
+    </checkout_onepage_index>
+    <onestepcheckout_index_index>
+        <reference name="head">
+            <action method="addCss">
+                <stylesheet>css/ingenico_epayments/checkout.css</stylesheet>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/lib/connectsdk.min.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/sdk-client.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/product-groups.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/repository/payment-products.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/repository/accounts-on-file.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/product-field-validator.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/tooltips.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/payload-factory.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/paymentdata/generic-processor.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/paymentdata/inline-processor.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/model/paymentdata/redirect-processor.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/controller/checkout/abstract.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/controller/checkout/redirect.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/controller/checkout/inline.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/alias.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/product-group.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/payment-product.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/product-fields.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/loading-indicator.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/view/checkout/input/hidden.js</script>
+            </action>
+            <action method="addJs">
+                <script>ingenico_epayments/onestepcheckout/plugin.js</script>
+            </action>
+        </reference>
+    </onestepcheckout_index_index>
+</layout>

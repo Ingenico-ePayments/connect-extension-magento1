@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Netresearch_Epayments>
+            <version>1.3.2</version>
+        </Netresearch_Epayments>
+    </modules>
+    <global>
+        <blocks>
+            <netresearch_epayments>
+                <class>Netresearch_Epayments_Block</class>
+            </netresearch_epayments>
+        </blocks>
+        <template>
+            <email>
+                <netresearch_epayments_fraud_email>
+                    <label>Ingenico ePayments fraud email</label>
+                    <file>netresearch_epayments/fraud_email.html</file>
+                    <type>html</type>
+                </netresearch_epayments_fraud_email>
+                <netresearch_epayments_payment_update>
+                    <label>Ingenico ePayments Payment Update</label>
+                    <file>netresearch_epayments/payment_update.html</file>
+                    <type>html</type>
+                </netresearch_epayments_payment_update>
+                <netresearch_epayments_legacy_payment_update>
+                    <label>Ingenico ePayments Payment Update</label>
+                    <file>netresearch_epayments/legacy/payment_update.html</file>
+                    <type>html</type>
+                </netresearch_epayments_legacy_payment_update>
+                <netresearch_epayments_legacy_fraud_email>
+                    <label>Ingenico ePayments fraud email</label>
+                    <file>netresearch_epayments/legacy/fraud_email.html</file>
+                    <type>html</type>
+                </netresearch_epayments_legacy_fraud_email>
+            </email>
+        </template>
+        <helpers>
+            <netresearch_epayments>
+                <class>Netresearch_Epayments_Helper</class>
+            </netresearch_epayments>
+        </helpers>
+        <models>
+            <netresearch_epayments>
+                <class>Netresearch_Epayments_Model</class>
+                <resourceModel>netresearch_epayments_resources</resourceModel>
+            </netresearch_epayments>
+            <netresearch_epayments_resources>
+                <class>Netresearch_Epayments_Model_Resource</class>
+                <entities>
+                    <token>
+                        <table>nr_epayments_customer_token</table>
+                    </token>
+                </entities>
+            </netresearch_epayments_resources>
+        </models>
+        <resources>
+            <netresearch_epayments_setup>
+                <setup>
+                    <class>Mage_Sales_Model_Resource_Setup</class>
+                    <module>Netresearch_Epayments</module>
+                </setup>
+            </netresearch_epayments_setup>
+        </resources>
+
+        <events>
+            <default>
+                <observers>
+                    <netresearch_epayments>
+                        <class>netresearch_epayments/observer_autoloader</class>
+                        <method>controllerFrontInitBefore</method>
+                        <type>singleton</type>
+                    </netresearch_epayments>
+                </observers>
+            </default>
+            <controller_front_init_before>
+                <observers>
+                    <netresearch_epayments>
+                        <class>netresearch_epayments/observer_autoloader</class>
+                        <method>controllerFrontInitBefore</method>
+                        <type>singleton</type>
+                    </netresearch_epayments>
+                </observers>
+            </controller_front_init_before>
+            <sales_order_payment_cancel_invoice>
+                <observers>
+                    <netresearch_epayments>
+                        <class>netresearch_epayments/observer</class>
+                        <type>singleton</type>
+                        <method>undoCapturePaymentRequest</method>
+                    </netresearch_epayments>
+                </observers>
+            </sales_order_payment_cancel_invoice>
+            <sales_order_payment_cancel_creditmemo>
+                <observers>
+                    <netresearch_epayments>
+                        <class>netresearch_epayments/observer</class>
+                        <type>singleton</type>
+                        <method>cancelCreditmemo</method>
+                    </netresearch_epayments>
+                </observers>
+            </sales_order_payment_cancel_creditmemo>
+        </events>
+    </global>
+
+    <frontend>
+        <layout>
+            <updates>
+                <ingenico_epayments>
+                    <file>ingenico_epayments.xml</file>
+                </ingenico_epayments>
+            </updates>
+        </layout>
+        <routers>
+            <epayments>
+                <use>standard</use>
+                <args>
+                    <module>Netresearch_Epayments</module>
+                    <frontName>epayments</frontName>
+                </args>
+            </epayments>
+        </routers>
+        <secure_url>
+            <epayments>/epayments/</epayments>
+        </secure_url>
+    </frontend>
+
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <Netresearch_Epayments after="Mage_Adminhtml">Netresearch_Epayments_Adminhtml</Netresearch_Epayments>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+
+    <adminhtml>
+        <events>
+            <adminhtml_widget_container_html_before>
+                <observers>
+                    <netresearch_epayments_addRefundUrl>
+                        <type>singleton</type>
+                        <class>netresearch_epayments/observer</class>
+                        <method>addRefundUrlToButton</method>
+                    </netresearch_epayments_addRefundUrl>
+                    <netresearch_epayments_updateOrderStatusButton>
+                        <type>singleton</type>
+                        <class>netresearch_epayments/observer</class>
+                        <method>addUpdateOrderButton</method>
+                    </netresearch_epayments_updateOrderStatusButton>
+                    <netresearch_epayments_addCancelButton>
+                        <type>singleton</type>
+                        <class>netresearch_epayments/observer</class>
+                        <method>removeCancelCreditmemoButton</method>
+                    </netresearch_epayments_addCancelButton>
+                </observers>
+            </adminhtml_widget_container_html_before>
+        </events>
+    </adminhtml>
+
+    <crontab>
+        <jobs>
+            <ingenico_cancel_pending_orders>
+                <schedule>
+                    <cron_expr>0 5 * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>netresearch_epayments/cron_cancelPendingOrders::execute</model>
+                </run>
+            </ingenico_cancel_pending_orders>
+            <ingenico_process_pending_orders>
+                <schedule>
+                    <cron_expr>*/5 * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>netresearch_epayments/orderUpdate_observer::processPendingOrder</model>
+                </run>
+            </ingenico_process_pending_orders>
+            <ingenico_process_wr_file>
+                <schedule>
+                    <cron_expr>30 4 * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>netresearch_epayments/cron_fetchWxFiles::execute</model>
+                </run>
+            </ingenico_process_wr_file>
+        </jobs>
+    </crontab>
+
+    <default>
+        <payment>
+            <hosted_checkout>
+                <active>1</active>
+                <model>netresearch_epayments/method_hostedCheckout</model>
+                <payment_action>authorize</payment_action>
+            </hosted_checkout>
+        </payment>
+        <ingenico_epayments>
+            <general>
+                <title>Ingenico ePayments</title>
+            </general>
+            <settings>
+                <hosted_checkout_subdomain>https://payment.</hosted_checkout_subdomain>
+                <log_all_requests>0</log_all_requests>
+                <log_all_requests_file>ingenico_epayments.log</log_all_requests_file>
+            </settings>
+            <checkout>
+                <inline_payments>0</inline_payments>
+            </checkout>
+            <captures>
+                <capture_mode>authorize</capture_mode>
+            </captures>
+            <email_template>netresearch_epayments_payment_update</email_template>
+            <legacy_email_template>netresearch_epayments_legacy_payment_update</legacy_email_template>
+            <fraud>
+                <email_template>netresearch_epayments_fraud_email</email_template>
+                <legacy_email_template>netresearch_epayments_legacy_fraud_email</legacy_email_template>
+            </fraud>
+            <payment_statuses>
+                <ACCOUNT_VERIFIED><![CDATA[The account has been verified using a validation services like 0$ auth]]></ACCOUNT_VERIFIED>
+                <CREATED><![CDATA[The transaction has been created. This is the initial state once a new payment is created.]]></CREATED>
+                <REDIRECTED><![CDATA[The consumer has been redirected to a 3rd party to complete the authentication/payment]]></REDIRECTED>
+                <PENDING_PAYMENT><![CDATA[Instructions have been provided and we are now waiting for the money to come in]]></PENDING_PAYMENT>
+                <PENDING_FRAUD_APPROVAL><![CDATA[The transaction has been marked for manual review after an automatic fraud screening]]></PENDING_FRAUD_APPROVAL>
+                <PENDING_APPROVAL><![CDATA[ The transaction is waiting for you to request one capture of the funds]]></PENDING_APPROVAL>
+                <PENDING_CAPTURE><![CDATA[The transaction is waiting for you to request one or more captures of the funds]]></PENDING_CAPTURE>
+                <REJECTED><![CDATA[The transaction has been rejected]]></REJECTED>
+                <AUTHORIZATION_REQUESTED><![CDATA[We have requested an authorization against an asynchronous system and is awaiting its response]]></AUTHORIZATION_REQUESTED>
+                <CAPTURE_REQUESTED><![CDATA[The transaction is in the queue to be captured]]></CAPTURE_REQUESTED>
+                <CAPTURED><![CDATA[The transaction has been captured and we have received online confirmation]]></CAPTURED>
+                <PAID><![CDATA[We have matched the incoming funds to the transaction]]></PAID>
+                <CANCELLED><![CDATA[You have cancelled the transaction]]></CANCELLED>
+                <REJECTED_CAPTURE><![CDATA[We or one of our downstream acquirers/providers have rejected the capture request]]></REJECTED_CAPTURE>
+                <REVERSED><![CDATA[The transaction has been reversed]]></REVERSED>
+                <CHARGEBACKED><![CDATA[The transaction has been chargebacked]]></CHARGEBACKED>
+                <REFUNDED><![CDATA[The transaction has been refunded]]></REFUNDED>
+            </payment_statuses>
+            <payment_method_groups>
+                <TOKEN>Saved payment options</TOKEN>
+                <BANKTRANSFER>Bank transfer</BANKTRANSFER>
+                <CARD>Credit cards</CARD>
+                <CASH>Cash</CASH>
+                <DIRECTDEBIT>Direct debit</DIRECTDEBIT>
+                <EINVOICE>e-Invoice</EINVOICE>
+                <INVOICE>Invoice</INVOICE>
+                <REDIRECT>Redirect</REDIRECT>
+            </payment_method_groups>
+            <email_settings>
+                <payment_successful>1</payment_successful>
+                <fraud_suspicion>1</fraud_suspicion>
+                <action_needed>1</action_needed>
+                <delayed_settlement>1</delayed_settlement>
+                <slow_3rd_party>1</slow_3rd_party>
+            </email_settings>
+        </ingenico_epayments>
+    </default>
+
+    <hosted_checkout>
+        <decorator_mappings>
+            <card>netresearch_epayments/ingenico_requestBuilder_specificInput_cardDecorator</card>
+            <redirect>netresearch_epayments/ingenico_requestBuilder_specificInput_redirectDecorator</redirect>
+            <bankTransfer>netresearch_epayments/ingenico_requestBuilder_specificInput_bankTransferDecorator</bankTransfer>
+            <cash>netresearch_epayments/ingenico_requestBuilder_specificInput_cashDecorator</cash>
+            <eInvoice>netresearch_epayments/ingenico_requestBuilder_specificInput_eInvoiceDecorator</eInvoice>
+            <sepaDirectDebit>netresearch_epayments/ingenico_requestBuilder_specificInput_sepaDirectDebitDecorator</sepaDirectDebit>
+            <directDebit>netresearch_epayments/ingenico_requestBuilder_specificInput_directDebitDecorator</directDebit>
+        </decorator_mappings>
+    </hosted_checkout>
+</config>

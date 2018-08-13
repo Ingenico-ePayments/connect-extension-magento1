@@ -1,0 +1,77 @@
+#payment_form_hosted_checkout .group > div {
+    border: 2px solid grey;
+    padding: 1em;
+}
+
+#payment_form_hosted_checkout .group_name {
+    margin-top: 10px;
+}
+
+#payment_form_hosted_checkout .product_logo,
+#payment_form_hosted_checkout .alias_logo {
+    vertical-align: middle;
+    display: inline-block !important;
+    padding: 5px 10px 0 10px;
+}
+
+#payment_form_hosted_checkout .product_label {
+    line-height: 40px;
+}
+
+#payment_form_hosted_checkout label {
+    float: none;
+}
+
+#payment_form_hosted_checkout .ingenico_field {
+    display: inline-block;
+    vertical-align: middle;
+    max-width: 100%;
+}
+
+#payment_form_hosted_checkout .alias_label {
+    font-size: 1.5em;
+    font-weight: lighter;
+    padding-left: 10px
+}
+
+#payment_form_hosted_checkout .tooltip {
+    font-size: 12px;
+    padding: 6px;
+    background: #eee;
+    position: absolute;
+    max-width: 300px;
+    z-index: 10;
+}
+
+#payment_form_hosted_checkout .tooltip-open,
+#payment_form_hosted_checkout .tooltip-close {
+    display: inline-block;
+    background: #888;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 0 .46em;
+    text-decoration: none;
+}
+
+#payment_form_hosted_checkout .tooltip-open:hover,
+#payment_form_hosted_checkout .tooltip-close:hover {
+    background: #555;
+}
+
+#payment_form_hosted_checkout .tooltip-close {
+    border-radius: 5px;
+    float: right;
+}
+
+#payment_form_hosted_checkout .tooltip-open {
+    border-radius: 50%;
+}
+
+#payment_form_hosted_checkout .tooltip img {
+    max-width: 100%;
+}
+
+#payment_form_hosted_checkout .ingenico-please-wait {
+    float: none;
+}
