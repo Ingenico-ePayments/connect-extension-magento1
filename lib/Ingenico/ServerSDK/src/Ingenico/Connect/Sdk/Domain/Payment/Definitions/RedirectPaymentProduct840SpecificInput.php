@@ -5,16 +5,16 @@
  */
 namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
-use Ingenico\Connect\Sdk\DataObject;
 use UnexpectedValueException;
 
 /**
  * @package Ingenico\Connect\Sdk\Domain\Payment\Definitions
  */
-class RedirectPaymentProduct840SpecificInput extends DataObject
+class RedirectPaymentProduct840SpecificInput extends AbstractRedirectPaymentProduct840SpecificInput
 {
     /**
      * @var string
+     * @deprecated use order.references.descriptor instead.
      */
     public $custom = null;
 

@@ -41,16 +41,19 @@ class Netresearch_Epayments_Model_Cron_FetchWxFiles_Processor implements Process
         } else {
             $this->wxClient = \Mage::getSingleton('netresearch_epayments/wxTransfer_client');
         }
+
         if (isset($args['logger'])) {
             $this->logger = $args['logger'];
         } else {
             $this->logger = \Mage::getSingleton('netresearch_epayments/cron_fetchWxFiles_logger');
         }
+
         if (isset($args['statusBuilder'])) {
             $this->statusBuilder = $args['statusBuilder'];
         } else {
             $this->statusBuilder = \Mage::getSingleton('netresearch_epayments/ingenico_globalCollect_statusBuilder');
         }
+
         if (isset($args['statusUpdateResolver'])) {
             $this->statusUpdateResolver = $args['statusUpdateResolver'];
         } else {
@@ -109,6 +112,7 @@ class Netresearch_Epayments_Model_Cron_FetchWxFiles_Processor implements Process
                 // Recordcategory X means that no actual influence on the amounts is due yet
                 continue;
             }
+
             try {
                 $emulatedResponse = $this->statusBuilder->create($record);
                 if ($emulatedResponse) {
@@ -118,6 +122,7 @@ class Netresearch_Epayments_Model_Cron_FetchWxFiles_Processor implements Process
                 $this->logger->addError($exception->getMessage());
             }
         }
+
         return $statusObjects;
     }
 }

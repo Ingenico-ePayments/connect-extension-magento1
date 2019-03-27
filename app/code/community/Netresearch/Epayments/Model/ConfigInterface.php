@@ -47,16 +47,22 @@ interface Netresearch_Epayments_Model_ConfigInterface
     public function getSecondaryApiEndpoint($storeId = null);
 
     /**
-     * @param null|int $storeId
-     * @return bool
+     * @param null $storeId
+     * @return string
      */
-    public function isInlinePaymentsEnabled($storeId = null);
+    public function getCheckoutType($storeId = null);
 
     /**
      * @param int|null $storeId
      * @return mixed
      */
     public function getCaptureMode($storeId = null);
+
+    /**
+     * @param null|int $storeId
+     * @return string
+     */
+    public function getHostedCheckoutVariant($storeId = null);
 
     /**
      * @param int|null $storeId
@@ -186,4 +192,25 @@ interface Netresearch_Epayments_Model_ConfigInterface
      * @return mixed
      */
     public function getSftpRemotePath($storeId = null);
+
+    /**
+     * @return bool
+     */
+    public function isAccountVerified();
+
+    /**
+     * @param int $value
+     */
+    public function setAccountVerified($value);
+
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isFullRedirect($storeId = null);
+
+    /**
+     * @return string
+     */
+    public function getReferencePrefix();
 }

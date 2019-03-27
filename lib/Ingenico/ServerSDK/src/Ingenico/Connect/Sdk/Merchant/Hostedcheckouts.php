@@ -21,13 +21,11 @@ use Ingenico\Connect\Sdk\ValidationException;
 
 /**
  * Hosted Checkouts client.
- * Create new hosted checkout
  */
 class Hostedcheckouts extends Resource
 {
     /**
-     * Resource /{merchantId}/hostedcheckouts
-     * Create hosted checkout
+     * Resource /{merchantId}/hostedcheckouts - Create hosted checkout
      *
      * @param CreateHostedCheckoutRequest $body
      * @param CallContext $callContext
@@ -45,7 +43,7 @@ class Hostedcheckouts extends Resource
     public function create($body, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(201, '\Ingenico\Connect\Sdk\Domain\Hostedcheckout\CreateHostedCheckoutResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Hostedcheckout\CreateHostedCheckoutResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/hostedcheckouts'),
@@ -57,8 +55,7 @@ class Hostedcheckouts extends Resource
     }
 
     /**
-     * Resource /{merchantId}/hostedcheckouts/{hostedCheckoutId}
-     * Get hosted checkout status
+     * Resource /{merchantId}/hostedcheckouts/{hostedCheckoutId} - Get hosted checkout status
      *
      * @param string $hostedCheckoutId
      * @param CallContext $callContext
@@ -77,7 +74,7 @@ class Hostedcheckouts extends Resource
     {
         $this->context['hostedCheckoutId'] = $hostedCheckoutId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Hostedcheckout\GetHostedCheckoutResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Hostedcheckout\GetHostedCheckoutResponse';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/hostedcheckouts/{hostedCheckoutId}'),

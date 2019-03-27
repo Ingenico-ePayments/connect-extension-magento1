@@ -44,6 +44,7 @@ class Netresearch_Epayments_Model_WxTransfer_Client implements Netresearch_Epaym
         if (!$this->epaymentConfig->getSftpActive($scopeId)) {
             return false;
         }
+
         $this->init($scopeId);
 
         $timeString = date('Ymd', strtotime($date));
@@ -122,6 +123,7 @@ class Netresearch_Epayments_Model_WxTransfer_Client implements Netresearch_Epaym
                 if ($carry['version'] < $item['version']) {
                     return $item;
                 }
+
                 return $carry;
             },
             array('version' => '0')
@@ -141,6 +143,7 @@ class Netresearch_Epayments_Model_WxTransfer_Client implements Netresearch_Epaym
         if (!$dom->loadXML($response, LIBXML_PARSEHUGE)) {
             Mage::throwException('Could not load response XML.');
         }
+
         return $dom;
     }
 

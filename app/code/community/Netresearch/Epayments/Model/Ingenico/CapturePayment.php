@@ -1,13 +1,13 @@
 <?php
 
-use \Ingenico\Connect\Sdk\Domain\Payment\ApprovePaymentRequest;
-use \Ingenico\Connect\Sdk\Domain\Payment\CapturePaymentRequest;
-use \Ingenico\Connect\Sdk\Domain\Capture\CaptureResponse;
-use \Ingenico\Connect\Sdk\Domain\Payment\Definitions\OrderApprovePayment;
-use \Ingenico\Connect\Sdk\Domain\Payment\Definitions\OrderReferencesApprovePayment;
-use \Ingenico\Connect\Sdk\Domain\Payment\Definitions\Payment;
-use \Ingenico\Connect\Sdk\Domain\Payment\PaymentApprovalResponse;
+use Ingenico\Connect\Sdk\Domain\Capture\CaptureResponse;
+use Ingenico\Connect\Sdk\Domain\Payment\ApprovePaymentRequest;
+use Ingenico\Connect\Sdk\Domain\Payment\CapturePaymentRequest;
+use Ingenico\Connect\Sdk\Domain\Payment\Definitions\OrderApprovePayment;
+use Ingenico\Connect\Sdk\Domain\Payment\Definitions\OrderReferencesApprovePayment;
+use Ingenico\Connect\Sdk\Domain\Payment\Definitions\Payment;
 use Netresearch_Epayments_Model_Method_HostedCheckout as HostedCheckout;
+
 /**
  * Class Netresearch_Epayments_Model_Ingenico_CapturePayment
  *
@@ -27,12 +27,24 @@ class Netresearch_Epayments_Model_Ingenico_CapturePayment
     protected $ePaymentsConfig;
 
     /**
+     * @var Netresearch_Epayments_Model_Ingenico_MerchantReference
+     */
+    protected $merchantReference;
+
+    /**
+     * @var Netresearch_Epayments_Model_Ingenico_GlobalCollect_OrderstatusHelper
+     */
+    protected $orderStatusHelper;
+
+    /**
      * Netresearch_Epayments_Model_Ingenico_CreateHostedCheckout constructor.
      */
     public function __construct()
     {
-        $this->ingenicoClient  = Mage::getSingleton('netresearch_epayments/ingenico_client');
+        $this->ingenicoClient = Mage::getSingleton('netresearch_epayments/ingenico_client');
         $this->ePaymentsConfig = Mage::getSingleton('netresearch_epayments/config');
+        $this->merchantReference = Mage::getSingleton('netresearch_epayments/ingenico_merchantReference');
+        $this->orderStatusHelper = Mage::getSingleton('netresearch_epayments/ingenico_globalCollect_orderStatusHelper');
 
         parent::__construct();
     }
@@ -44,6 +56,7 @@ class Netresearch_Epayments_Model_Ingenico_CapturePayment
      */
     public function process(Mage_Sales_Model_Order $order, $amount)
     {
+        /** @var Mage_Sales_Model_Order_Payment $payment */
         $payment = $order->getPayment();
         $transactionId = $payment->getAdditionalInformation(HostedCheckout::PAYMENT_ID_KEY);
         $authResponseObject = $this->statusResponseManager->get($payment, $transactionId);
@@ -51,18 +64,28 @@ class Netresearch_Epayments_Model_Ingenico_CapturePayment
         $ingenicoPaymentId = $authResponseObject->id;
         $status = $authResponseObject->status;
 
-        if ($status == Netresearch_Epayments_Model_Ingenico_StatusInterface::PENDING_CAPTURE) {
+        if ($status === Netresearch_Epayments_Model_Ingenico_StatusInterface::PENDING_CAPTURE) {
             /** @var CaptureResponse $response */
             $response = $this->capturePayment($ingenicoPaymentId, $payment, $amount);
-        } else if ($status == Netresearch_Epayments_Model_Ingenico_StatusInterface::PENDING_APPROVAL) {
-            /** @var PaymentApprovalResponse $response */
-            $response = $this->approvePayment($ingenicoPaymentId, $payment, $amount);
         } else {
-            Mage::throwException("Unknown or invalid payment status $status");
+            if ($status === Netresearch_Epayments_Model_Ingenico_StatusInterface::PENDING_APPROVAL) {
+                /** @var Payment $response */
+                $response = $this->approvePayment($ingenicoPaymentId, $payment, $amount);
+                if (!$this->orderStatusHelper->shouldOrderSkipPaymentReview($response)) {
+                    $payment->setIsTransactionClosed(false);
+                    $payment->setIsTransactionPending(true);
+                } else {
+                    foreach ($order->getInvoiceCollection() as $invoice) {
+                        if ($invoice->getTransactionId() === $response->id) {
+                            $invoice->setState(Mage_Sales_Model_Order_Invoice::STATE_OPEN);
+                        }
+                    }
+                }
+            } else {
+                Mage::throwException("Unknown or invalid payment status $status");
+            }
         }
-        if ($response->status === Netresearch_Epayments_Model_Ingenico_StatusInterface::CAPTURE_REQUESTED) {
-            $payment->setIsTransactionPending(true); // set order status to 'Payment Review'
-        }
+
         $this->postProcess($payment, $response);
     }
 
@@ -79,7 +102,8 @@ class Netresearch_Epayments_Model_Ingenico_CapturePayment
         $request = new ApprovePaymentRequest();
 
         $orderReferencesApprovePayment = new OrderReferencesApprovePayment();
-        $orderReferencesApprovePayment->merchantReference = $payment->getOrder()->getIncrementId();
+        $orderReferencesApprovePayment->merchantReference =
+            $this->merchantReference->generateMerchantReference($payment->getOrder());
 
         $orderApprovePayment = new OrderApprovePayment();
         $orderApprovePayment->references = $orderReferencesApprovePayment;

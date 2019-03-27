@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Interface Netresearch_Epayments_Model_Ingenico_Webhooks_EventDataResolverInterface
+ */
 interface Netresearch_Epayments_Model_Ingenico_Webhooks_EventDataResolverInterface
 {
     /**
@@ -13,6 +16,7 @@ interface Netresearch_Epayments_Model_Ingenico_Webhooks_EventDataResolverInterfa
      * @param \Ingenico\Connect\Sdk\Domain\Webhooks\WebhooksEvent $event
      * @return string
      * @throws RuntimeException if event does not match certain resolver or merchant order id is missing
+     * @throws \InvalidArgumentException if event reference does not originate from this system
      */
     public function getMerchantReference(\Ingenico\Connect\Sdk\Domain\Webhooks\WebhooksEvent $event);
 }

@@ -35,5 +35,4 @@ class Netresearch_Epayments_Adminhtml_OrderProcessingController extends Mage_Adm
     {
         return Mage::getSingleton('admin/session')->isAllowed('sales/order/actions/updateOrder');
     }
-
 }

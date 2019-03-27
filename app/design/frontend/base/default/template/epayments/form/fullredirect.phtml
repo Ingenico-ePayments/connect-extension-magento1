@@ -1,0 +1,16 @@
+<?php
+/**
+ * @var Netresearch_Epayments_Block_Form_CheckoutMethods $this
+ */
+?>
+<ul class="form-list gc-list"
+    id="payment_form_<?php echo $this->escapeHtml($this->getMethodCode()); ?>"
+    style="display:none;">
+    <li>
+        <em>
+            <?php echo $this->escapeHtml(
+                Mage::helper('netresearch_epayments')->__('You will be redirected to complete your payment.')
+            ); ?>
+        </em>
+    </li>
+</ul>

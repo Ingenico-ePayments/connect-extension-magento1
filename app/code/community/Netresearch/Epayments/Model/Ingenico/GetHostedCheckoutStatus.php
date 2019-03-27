@@ -1,6 +1,7 @@
 <?php
 
 use Netresearch_Epayments_Model_Method_HostedCheckout as HostedCheckout;
+use Netresearch_Epayments_Model_Ingenico_ActionInterface as ActionInterface;
 use Ingenico\Connect\Sdk\Domain\Hostedcheckout\GetHostedCheckoutResponse;
 
 /**
@@ -10,8 +11,7 @@ use Ingenico\Connect\Sdk\Domain\Hostedcheckout\GetHostedCheckoutResponse;
  *
  * @link https://developer.globalcollect.com/documentation/api/server/#__merchantId__hostedcheckouts__hostedCheckoutId__get
  */
-class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus
-    implements Netresearch_Epayments_Model_Ingenico_ActionInterface
+class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus implements ActionInterface
 {
     const PAYMENT_CREATED                    = 'PAYMENT_CREATED';
     const IN_PROGRESS                        = 'IN_PROGRESS';
@@ -20,14 +20,79 @@ class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus
     const PAYMENT_STATUS_CATEGORY_UNKNOWN    = 'STATUS_UNKNOWN';
     const PAYMENT_STATUS_CATEGORY_REJECTED   = 'REJECTED';
     const PAYMENT_OUTPUT_SHOW_INSTRUCTIONS   = 'SHOW_INSTRUCTIONS';
+    const PAYMENT_CANCELED_BY_CUSTOMER       = 'CANCELLED_BY_CONSUMER';
 
     /**
-     * @param Mage_Sales_Model_Order $order
-     * @throws Exception
+     * @var Netresearch_Epayments_Model_Ingenico_MerchantReference
      */
-    public function process(Mage_Sales_Model_Order $order)
+    protected $merchantReference;
+
+    /**
+     * @var Netresearch_Epayments_Model_TokenService
+     */
+    protected $tokenService;
+
+    /**
+     * @var Netresearch_Epayments_Model_ConfigInterface
+     */
+    protected $ingenicoConfig;
+
+    /**
+     * @var Netresearch_Epayments_Model_Ingenico_Api_ClientInterface
+     */
+    protected $ingenicoClient;
+
+    /**
+     * @var Netresearch_Epayments_Model_Ingenico_Status_Resolver
+     */
+    protected $statusResolver;
+
+    /**
+     * @var Netresearch_Epayments_Model_StatusResponseManager
+     */
+    protected $statusResponseManager;
+
+    /**
+     * @var Mage_Sales_Model_Order_Payment_Transaction
+     */
+    protected $paymentTransaction;
+
+    /**
+     * @var Netresearch_Epayments_Helper_Data
+     */
+    protected $helper;
+
+
+    /**
+     * Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver constructor.
+     */
+    public function __construct()
     {
-        $statusResponse = $this->getStatusResponse($order);
+        $this->merchantReference = Mage::getSingleton('netresearch_epayments/ingenico_merchantReference');
+        $this->tokenService = Mage::getSingleton('netresearch_epayments/tokenService');
+        $this->ingenicoConfig = Mage::getSingleton('netresearch_epayments/config');
+        $this->ingenicoClient = Mage::getSingleton('netresearch_epayments/ingenico_client');
+        $this->statusResolver = Mage::getSingleton('netresearch_epayments/ingenico_status_resolver');
+        $this->statusResponseManager = Mage::getSingleton('netresearch_epayments/statusResponseManager');
+        $this->paymentTransaction = Mage::getModel('sales/order_payment_transaction');
+        $this->helper = Mage::helper('netresearch_epayments');
+    }
+
+    /**
+     * @param string $hostedCheckoutId
+     * @throws Exception
+     *
+     * @return Mage_Sales_Model_Order
+     */
+    public function process($hostedCheckoutId)
+    {
+        $statusResponse = $this->getStatusResponse($hostedCheckoutId);
+        $this->validateResponse($statusResponse);
+
+        $incrementId = $this->merchantReference->extractOrderReference(
+            $statusResponse->createdPaymentOutput->payment->paymentOutput->references->merchantReference
+        );
+        $order = $this->getOrderByIncrementId($incrementId);
 
         $this->checkPaymentStatusCategory($statusResponse, $order);
 
@@ -39,44 +104,46 @@ class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus
             if ($customerId && $token !== null) {
                 $this->processCustomerToken($customerId, $token);
             }
+
             // save the order before sendNewOrderEmail is called due to possible unexpected behaviour in CE1.8
             $order->save();
+
+            $this->createTransactionIfNotExists($statusResponse, $order);
+
             try {
                 $order->sendNewOrderEmail();
             } catch (Exception $e) {
                 Mage::logException($e);
             }
+        } elseif ($statusResponse->status === self::PAYMENT_CANCELED_BY_CUSTOMER) {
+            $order->registerCancellation('You canceled your payment');
+            $order->save();
         } else {
             $order->save();
         }
+
+        return $order;
     }
 
     /**
-     * @param $customerId
-     * @param $tokenString
+     * @param string $customerId
+     * @param string $tokenString
      * @throws Exception
      */
     protected function processCustomerToken($customerId, $tokenString)
     {
-        Mage::getModel('netresearch_epayments/tokenService')->assignToken($customerId, $tokenString);
+        $this->tokenService->assignToken($customerId, $tokenString);
     }
 
     /**
-     * @param Mage_Sales_Model_Order $order
+     * @param string $hostedCheckoutId
      * @return GetHostedCheckoutResponse
      */
-    protected function getStatusResponse(Mage_Sales_Model_Order $order)
+    protected function getStatusResponse($hostedCheckoutId)
     {
-        $hostedCheckoutId = $order->getPayment()->getAdditionalInformation(HostedCheckout::HOSTED_CHECKOUT_ID_KEY);
-
-        /** @var Netresearch_Epayments_Model_ConfigInterface $ingenicoConfig */
-        $ingenicoConfig = Mage::getSingleton('netresearch_epayments/config');
-        /** @var Netresearch_Epayments_Model_Ingenico_Api_ClientInterface $ingenicoClient */
-        $ingenicoClient = Mage::getModel('netresearch_epayments/ingenico_client');
-
         /** @var GetHostedCheckoutResponse $statusResponse */
-        $statusResponse = $ingenicoClient->getIngenicoClient($order->getStoreId())
-            ->merchant($ingenicoConfig->getMerchantId($order->getStoreId()))
+        $statusResponse = $this->ingenicoClient->getIngenicoClient()
+            ->merchant($this->ingenicoConfig->getMerchantId())
             ->hostedcheckouts()
             ->get($hostedCheckoutId);
 
@@ -92,8 +159,7 @@ class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus
     protected function processOrder(
         Mage_Sales_Model_Order $order,
         GetHostedCheckoutResponse $statusResponse
-    )
-    {
+    ) {
         $paymentId = $statusResponse->createdPaymentOutput->payment->id;
         $paymentStatus = $statusResponse->createdPaymentOutput->payment->status;
         $paymentStatusCode = $statusResponse->createdPaymentOutput->payment->statusOutput->statusCode;
@@ -101,7 +167,7 @@ class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus
         $payment = $order->getPayment();
         if (isset($statusResponse->createdPaymentOutput->displayedData)
             && $statusResponse->createdPaymentOutput->displayedData->displayedDataType
-            == self::PAYMENT_OUTPUT_SHOW_INSTRUCTIONS
+            === self::PAYMENT_OUTPUT_SHOW_INSTRUCTIONS
         ) {
             $payment->setAdditionalInformation(
                 HostedCheckout::PAYMENT_SHOW_DATA_KEY,
@@ -109,26 +175,12 @@ class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus
             );
         }
 
-        /** @var Netresearch_Epayments_Model_Ingenico_StatusFactory $statusFactory */
-        $statusFactory = Mage::getSingleton('netresearch_epayments/ingenico_statusFactory');
-        $status = $statusFactory->create($statusResponse->createdPaymentOutput->payment);
-        $status->apply($order);
+        $this->statusResolver->resolve($order, $statusResponse->createdPaymentOutput->payment);
 
         $payment->setAdditionalInformation(HostedCheckout::PAYMENT_ID_KEY, $paymentId);
         $payment->setAdditionalInformation(HostedCheckout::PAYMENT_STATUS_KEY, $paymentStatus);
         $payment->setAdditionalInformation(HostedCheckout::PAYMENT_STATUS_CODE_KEY, $paymentStatusCode);
-        
-        $info = Mage::helper('netresearch_epayments')->getPaymentStatusInfo($paymentStatus);
-        if ($info) {
-            $order->addStatusHistoryComment(
-                sprintf(
-                    "%s (payment status: '%s', payment status code: '%s')",
-                    $info,
-                    $paymentStatus,
-                    $paymentStatusCode
-                )
-            );
-        }
+
         return $order;
     }
 
@@ -142,8 +194,8 @@ class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus
         $orderReturnmac = $order->getPayment()->getAdditionalInformation(HostedCheckout::RETURNMAC_KEY);
         $returnmac = Mage::app()->getRequest()->get(self::RETURNMAC);
 
-        if ($returnmac != $orderReturnmac) {
-            Mage::throwException(Mage::helper('netresearch_epayments')->__('RETURNMAC doesn\'t match.'));
+        if ($returnmac !== $orderReturnmac) {
+            Mage::throwException($this->helper->__('RETURNMAC doesn\'t match.'));
         }
     }
 
@@ -153,37 +205,91 @@ class Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus
      * @param GetHostedCheckoutResponse $statusResponse
      * @param Mage_Sales_Model_Order $order
      *
-     * @throws Exception if order is faulty or rejected by platform
+     * @throws Mage_Core_Exception if order is faulty or rejected by platform
      *
      */
     protected function checkPaymentStatusCategory(
         GetHostedCheckoutResponse $statusResponse,
         Mage_Sales_Model_Order $order
-    )
-    {
+    ) {
         // handle faulty responses or rejected/cancelled orders
         $createdPaymentOutput = $statusResponse->createdPaymentOutput;
         if (!$createdPaymentOutput
-            || $createdPaymentOutput->paymentStatusCategory == self::PAYMENT_STATUS_CATEGORY_REJECTED
+            || $createdPaymentOutput->paymentStatusCategory === self::PAYMENT_STATUS_CATEGORY_REJECTED
         ) {
             if ($createdPaymentOutput) {
                 $status = $createdPaymentOutput->payment->status;
             } else {
                 $status = $statusResponse->status;
             }
-            /** @var Netresearch_Epayments_Helper_Data $helper */
-            $helper = Mage::helper('netresearch_epayments');
-            $info = $helper->getPaymentStatusInfo($status);
+
+            $info = $this->helper->getPaymentStatusInfo($status);
             if ($info) {
-                $msg = $helper->__('Payment error:') . ' ' . $info;
+                $msg = $this->helper->__('Payment error:') . ' ' . $info;
             } else {
-                $msg = $helper->__('Payment status is rejected or unknown');
+                $msg = $this->helper->__('Your payment was rejected or a technical error occured during processing.');
                 $info = $msg;
             }
 
             $order->registerCancellation("<b>Payment error, status</b><br />{$statusResponse->status}: $info");
             $order->save();
             Mage::throwException($msg);
+        }
+    }
+
+    /**
+     * @param string $incrementId
+     * @return Mage_Sales_Model_Order
+     */
+    protected function getOrderByIncrementId($incrementId)
+    {
+        /**
+         * @var Mage_Sales_Model_Order $order
+         */
+        $order = Mage::getModel('sales/order');
+
+        return $order->loadByIncrementId($incrementId);
+    }
+
+    /**
+     * @param GetHostedCheckoutResponse $statusResponse
+     * @throws Exception
+     */
+    protected function validateResponse($statusResponse)
+    {
+        if (!$statusResponse->createdPaymentOutput) {
+            $msg = $this->helper->__('Your payment was rejected or a technical error occured during processing.');
+            Mage::throwException($msg);
+        }
+    }
+
+    /**
+     * @param GetHostedCheckoutResponse $statusResponse
+     * @param Mage_Sales_Model_Order $order
+     * @throws Mage_Core_Exception
+     */
+    protected function createTransactionIfNotExists(
+        GetHostedCheckoutResponse $statusResponse,
+        Mage_Sales_Model_Order $order
+    ) {
+        $payment = $order->getPayment();
+        $payId = $statusResponse->createdPaymentOutput->payment->id;
+
+        /**
+         * $payment->getTransaction($payId) is not reliable in this part of the request, therefore we manually
+         * retrieve the transaction from the database.
+         */
+        $transCollection = $this->paymentTransaction->getCollection()
+            ->addFieldToFilter('txn_id', array('eq' => $payId));
+        $transCollection->setPageSize(1);
+        $transaction = $transCollection->getItems();
+
+        if (empty($transaction)) {
+            $this->statusResponseManager->set($payment, $payId, $statusResponse->createdPaymentOutput->payment);
+            $transaction = $payment->addTransaction(
+                Mage_Sales_Model_Order_Payment_Transaction::TYPE_PAYMENT, $order, false
+            );
+            $transaction->save();
         }
     }
 }

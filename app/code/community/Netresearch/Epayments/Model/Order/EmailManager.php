@@ -72,6 +72,7 @@ class Netresearch_Epayments_Model_Order_EmailManager implements Netresearch_Epay
                 );
             }
         }
+
         /** @var $mailer Mage_Core_Model_Email_Template_Mailer */
         $mailer = Mage::getModel('core/email_template_mailer');
         /** @var $emailInfo Mage_Core_Model_Email_Info */
@@ -129,10 +130,12 @@ class Netresearch_Epayments_Model_Order_EmailManager implements Netresearch_Epay
                 $instructionsCurrency = $pair->value;
                 continue;
             }
+
             if ($pair->key == 'AMOUNT') {
                 $instructionsAmount = $pair->value;
                 continue;
             }
+
             if ($pair->key === 'BARCODE') {
                 $pair->value = "<img src='data:image/gif;base64{$pair->value}' />";
             }
@@ -158,14 +161,14 @@ class Netresearch_Epayments_Model_Order_EmailManager implements Netresearch_Epay
     protected function sendEmail(
         Mage_Core_Model_Email_Template_Mailer $mailer,
         Mage_Sales_Model_Order $order
-    )
-    {
+    ) {
         $magentoVersion = Mage::getVersionInfo();
         if ($magentoVersion['major'] === '1' && $magentoVersion['minor'] === '9') {
             $result = $this->addToEmailQueue($mailer, $order);
         } else {
             $result = $mailer->send();
         }
+
         return $result;
     }
 
@@ -176,8 +179,7 @@ class Netresearch_Epayments_Model_Order_EmailManager implements Netresearch_Epay
     protected function addToEmailQueue(
         Mage_Core_Model_Email_Template_Mailer $mailer,
         Mage_Sales_Model_Order $order
-    )
-    {
+    ) {
         /** @var $emailQueue Mage_Core_Model_Email_Queue */
         $emailQueue = Mage::getModel('core/email_queue');
         $emailQueue->setEntityId($order->getId())

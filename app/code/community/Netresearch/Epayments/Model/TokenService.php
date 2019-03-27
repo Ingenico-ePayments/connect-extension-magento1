@@ -40,6 +40,7 @@ class Netresearch_Epayments_Model_TokenService
             if ($this->tokenExists($customerId, $tokenString)) {
                 return $this;
             }
+
             $token = Mage::getModel('netresearch_epayments/token');
             $token->setCustomerId($customerId);
             $token->setTokenString($tokenString);
@@ -106,6 +107,7 @@ class Netresearch_Epayments_Model_TokenService
         foreach ($this->tokenCollection->getItems() as $token) {
             $token->isDeleted(true);
         }
+
         $this->tokenCollection->save();
     }
 }

@@ -1,14 +1,33 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_Status_AbstractStatus as AbstractStatus;
+use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use Netresearch_Epayments_Model_Ingenico_Status_HandlerInterface as HandlerInterface;
+use Netresearch_Epayments_Model_Order_EmailInterface as OrderEmailMananger;
 
-class Netresearch_Epayments_Model_Ingenico_Status_Redirected extends AbstractStatus
+/**
+ * Class Netresearch_Epayments_Model_Ingenico_Status_Redirected
+ */
+class Netresearch_Epayments_Model_Ingenico_Status_Redirected implements HandlerInterface
 {
     /**
-     * {@inheritDoc}
+     * @var OrderEmailMananger
      */
-    public function _apply(Mage_Sales_Model_Order $order)
+    protected $orderEMailManager;
+
+    /**
+     * Netresearch_Epayments_Model_Ingenico_Status_Redirected constructor.
+     */
+    public function __construct()
     {
-        $this->orderEMailManager->process($order, $this->getStatus());
+        $this->orderEMailManager = Mage::getModel('netresearch_epayments/order_emailManager');
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     * @param AbstractOrderStatus $ingenicoStatus
+     */
+    public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
+    {
+        $this->orderEMailManager->process($order, $ingenicoStatus->status);
     }
 }

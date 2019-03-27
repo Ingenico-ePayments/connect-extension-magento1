@@ -21,6 +21,7 @@ class Netresearch_Epayments_Adminhtml_RefundProcessingController extends Mage_Ad
         if (!$paymentMethod instanceof Netresearch_Epayments_Model_Method_HostedCheckout) {
             return;
         }
+
         if (!$creditmemo->canRefund()) {
             $this->_getSession()->addError($this->__('Credit memo is not refundable.'));
             return;
@@ -50,6 +51,7 @@ class Netresearch_Epayments_Adminhtml_RefundProcessingController extends Mage_Ad
             $this->_getSession()->addError($this->__('Error during refund approval: %s', $message));
             return;
         }
+
         $this->_getSession()->addSuccess($this->__('The credit memo has been approved.'));
     }
 

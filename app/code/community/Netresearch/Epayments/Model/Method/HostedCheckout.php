@@ -1,5 +1,6 @@
 <?php
 
+use Netresearch_Epayments_Model_Config as EpaymentsConfig;
 use Netresearch_Epayments_Model_Ingenico_StatusInterface as StatusInterface;
 
 /**
@@ -87,7 +88,7 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
     protected $ingenicoClient;
 
     /**
-     * @var Netresearch_Epayments_Model_Config
+     * @var EpaymentsConfig
      */
     protected $ingenicoConfig;
 
@@ -107,15 +108,21 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
     protected $statusResponseManager;
 
     /**
+     * @var Netresearch_Epayments_Model_Ingenico_Status_ResolverInterface
+     */
+    protected $statusResolver;
+
+    /**
      * Netresearch_Epayments_Model_Method_HostedCheckout constructor.
      */
     public function __construct()
     {
-        $this->ingenicoClient               = Mage::getSingleton('netresearch_epayments/ingenico_client');
-        $this->ingenicoConfig               = Mage::getSingleton('netresearch_epayments/config');
+        $this->ingenicoClient = Mage::getSingleton('netresearch_epayments/ingenico_client');
+        $this->ingenicoConfig = Mage::getSingleton('netresearch_epayments/config');
         $this->ingenicoCreateHostedCheckout = Mage::getSingleton('netresearch_epayments/ingenico_createHostedCheckout');
         $this->ingenicoCreatePayment = Mage::getSingleton('netresearch_epayments/ingenico_createPayment');
-        $this->statusResponseManager        = Mage::getModel('netresearch_epayments/statusResponseManager');
+        $this->statusResponseManager = Mage::getModel('netresearch_epayments/statusResponseManager');
+        $this->statusResolver = Mage::getModel('netresearch_epayments/ingenico_status_resolver');
 
         parent::__construct();
     }
@@ -135,8 +142,11 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
     public function isAvailable($quote = null)
     {
         $storeId = $quote ? $quote->getStoreId() : null;
+        $isVerified = $this->ingenicoConfig->isAccountVerified($storeId);
 
-        return parent::isAvailable($quote) && Mage::getStoreConfig('ingenico_epayments/settings/active', $storeId);
+        return parent::isAvailable($quote) &&
+               Mage::getStoreConfig('ingenico_epayments/settings/active', $storeId) &&
+               $isVerified;
     }
 
     /**
@@ -144,17 +154,27 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
      *
      * @param array|Varien_Object $data
      * @return $this|Mage_Payment_Model_Info
+     * @throws Mage_Core_Exception
      */
     public function assignData($data)
     {
         parent::assignData($data);
+
         if (is_array($data)) {
             $data = new Varien_Object($data);
         }
-        $productId     = $data->getData(self::PRODUCT_ID_KEY);
-        $productLabel  = $data->getData(self::PRODUCT_LABEL_KEY);
+
+        /** @var Mage_Sales_Model_Quote_Payment $info */
+        $info = $this->getInfoInstance();
+
+        if ($this->ingenicoConfig->isFullRedirect($info->getQuote()->getStoreId())) {
+            return $this;
+        }
+
+        $productId = $data->getData(self::PRODUCT_ID_KEY);
+        $productLabel = $data->getData(self::PRODUCT_LABEL_KEY);
         $paymentMethod = $data->getData(self::PRODUCT_PAYMENT_METHOD_KEY);
-        $tokenize      = $data->getData(self::PRODUCT_TOKENIZE_KEY);
+        $tokenize = $data->getData(self::PRODUCT_TOKENIZE_KEY);
         if ($tokenize === null) {
             $tokenize = true;
         }
@@ -163,7 +183,6 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
             Mage::throwException(Mage::helper('netresearch_epayments')->__('Please select a payment method.'));
         }
 
-        $info = $this->getInfoInstance();
         $info->setAdditionalInformation(self::PRODUCT_ID_KEY, $productId);
         $info->setAdditionalInformation(self::PRODUCT_LABEL_KEY, $productLabel);
         $info->setAdditionalInformation(self::PRODUCT_PAYMENT_METHOD_KEY, $paymentMethod);
@@ -190,20 +209,11 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
         /** @var Mage_Sales_Model_Order_Payment $info */
         $info = $this->getInfoInstance();
         $order = $info->getOrder();
+        $this->ingenicoCreateHostedCheckout->create($order);
 
-        if (($clientPayload = $info->getAdditionalInformation(self::CLIENT_PAYLOAD_KEY))
-            && $this->ingenicoConfig->isInlinePaymentsEnabled($order->getStoreId())
-        ) {
-            $this->ingenicoCreatePayment->create($order, $clientPayload);
-            /** Delete the payload after we are done with it. */
-            $info->setAdditionalInformation(self::CLIENT_PAYLOAD_KEY, null);
-        } else {
-            $this->ingenicoCreateHostedCheckout->create($order);
-
-            $stateObject->setState(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
-            $stateObject->setStatus(true);
-            $stateObject->setIsNotified(false);
-        }
+        $stateObject->setState(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
+        $stateObject->setStatus(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
+        $stateObject->setIsNotified(false);
 
         return $this;
     }
@@ -217,6 +227,14 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
     public function capture(Varien_Object $payment, $amount)
     {
         parent::capture($payment, $amount);
+
+        if (!$payment->getAuthorizationTransaction()) {
+            // createPayment
+            $this->ingenicoCreatePayment->create($payment->getOrder());
+            $payment->setAdditionalInformation(self::CLIENT_PAYLOAD_KEY, null);
+
+            return $this;
+        }
 
         /** @var Netresearch_Epayments_Model_Ingenico_CapturePayment $capturePayment */
         $capturePayment = Mage::getSingleton('netresearch_epayments/ingenico_capturePayment');
@@ -251,13 +269,11 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
     {
         /** @var \Ingenico\Connect\Sdk\Domain\Refund\RefundResponse $refundResponse */
         $statusResponse = $payment->getRefundResponse();
-        /** @var Netresearch_Epayments_Model_Ingenico_StatusFactory $statusFactory */
-        $statusFactory = Mage::getSingleton('netresearch_epayments/ingenico_statusFactory');
-        $status = $statusFactory->create($statusResponse);
-        $status->applyCreditmemo($creditmemo);
+        $order = $creditmemo->getOrder();
+        $this->statusResolver->resolve($order, $statusResponse);
+
         return parent::processCreditmemo($creditmemo, $payment);
     }
-
 
     /**
      * @param Varien_Object|Mage_Sales_Model_Order_Payment|Mage_Sales_Model_Order_Creditmemo $payment
@@ -296,6 +312,7 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
             $cancelPaymentRequest = Mage::getSingleton('netresearch_epayments/ingenico_cancelPayment');
             $cancelPaymentRequest->process($payment->getOrder());
         }
+
         return $this;
     }
 
@@ -323,6 +340,7 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
     public function getOrderPlaceRedirectUrl()
     {
         $info = $this->getInfoInstance();
+
         return $info->getAdditionalInformation(self::REDIRECT_URL_KEY);
     }
 
@@ -341,12 +359,10 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
             /** @var \Ingenico\Connect\Sdk\Domain\Refund\Definitions\RefundResult $refundResponse */
             $refundResponse = $this->statusResponseManager->get($payment, $transactionId);
             $result = $refundResponse->status == StatusInterface::PENDING_APPROVAL;
-        } elseif (
-            $paymentResponse = $this->statusResponseManager->get(
-                $payment,
-                $payment->getAdditionalInformation(self::PAYMENT_ID_KEY)
-            )
-        ) {
+        } elseif ($paymentResponse = $this->statusResponseManager->get(
+            $payment,
+            $payment->getAdditionalInformation(self::PAYMENT_ID_KEY)
+        )) {
             $result = $paymentResponse->statusOutput->isRefundable;
             // @FIXME: This is a workaround for the Ogone endpoint until the ingenico api is fixed!
             if (!$result &&
@@ -355,8 +371,7 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
                 $invoiceId = $creditmemo->getInvoice()->getTransactionId()
             ) {
                 $paymentResponse = $this->statusResponseManager->get($payment, $invoiceId);
-                $result = $paymentResponse->statusOutput->statusCode === 9 ||
-                    $paymentResponse->statusOutput->statusCode === 95;
+                $result = in_array($paymentResponse->statusOutput->statusCode, array(9, 95), true);
             }
         }
 
@@ -364,7 +379,7 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
     }
 
     /**
-     * @inheritdoc
+     * @param Varien_Object $document
      * @return bool
      */
     public function canVoid(Varien_Object $document)
@@ -381,6 +396,7 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
         $actionResponseObject = $this->statusResponseManager->get($this->getInfoInstance(), $transactionId);
         if ($actionResponseObject) {
             $result = $actionResponseObject->statusOutput->isCancellable;
+            $document->setParentTransactionId($actionResponseObject->id);
         }
 
         return $result;
@@ -473,5 +489,47 @@ class Netresearch_Epayments_Model_Method_HostedCheckout extends Mage_Payment_Mod
         }
 
         return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isInitializeNeeded()
+    {
+        $shouldInitialize = true;
+        /** @var Mage_Sales_Model_Quote_Payment $info */
+        $info = $this->getInfoInstance();
+        $isInline = $this->ingenicoConfig->getCheckoutType($info->getOrder()->getStoreId()) ===
+                    Netresearch_Epayments_Model_Config::CONFIG_INGENICO_CHECKOUT_TYPE_INLINE;
+        if ($isInline) {
+            $payment = $info->getOrder()->getPayment();
+            $shouldInitialize = !$payment->getAdditionalInformation(self::CLIENT_PAYLOAD_KEY);
+        }
+
+        return $shouldInitialize;
+    }
+
+    /**
+     * @return mixed|string
+     */
+    public function getConfigPaymentAction()
+    {
+        $info = $this->getInfoInstance();
+
+        return $this->ingenicoConfig->getCaptureMode($info->getOrder()->getStoreId());
+    }
+
+    /**
+     * @param Varien_Object|Mage_Sales_Model_Order_Payment $payment
+     * @param float $amount
+     * @return $this|Mage_Payment_Model_Abstract
+     * @throws Mage_Payment_Model_Info_Exception
+     */
+    public function authorize(Varien_Object $payment, $amount)
+    {
+        $this->ingenicoCreatePayment->create($payment->getOrder());
+        $payment->setAdditonalInformation(self::CLIENT_PAYLOAD_KEY, null);
+
+        return $this;
     }
 }

@@ -53,6 +53,7 @@ class Netresearch_Epayments_Helper_Data extends Mage_Core_Helper_Abstract
         if ($info) {
             return $this->escapeHtml($info);
         }
+
         return null;
     }
 }

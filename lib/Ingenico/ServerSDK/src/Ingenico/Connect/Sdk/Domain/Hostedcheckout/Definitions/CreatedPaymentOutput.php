@@ -6,7 +6,6 @@
 namespace Ingenico\Connect\Sdk\Domain\Hostedcheckout\Definitions;
 
 use Ingenico\Connect\Sdk\DataObject;
-use Ingenico\Connect\Sdk\Domain\Hostedcheckout\Definitions\DisplayedData;
 use Ingenico\Connect\Sdk\Domain\Payment\Definitions\Payment;
 use Ingenico\Connect\Sdk\Domain\Payment\Definitions\PaymentCreationReferences;
 use UnexpectedValueException;
@@ -33,8 +32,14 @@ class CreatedPaymentOutput extends DataObject
 
     /**
      * @var string
+     * @deprecated Use payment.statusOutput.statusCategory instead
      */
     public $paymentStatusCategory = null;
+
+    /**
+     * @var bool
+     */
+    public $tokenizationSucceeded = null;
 
     /**
      * @var string
@@ -72,6 +77,9 @@ class CreatedPaymentOutput extends DataObject
         }
         if (property_exists($object, 'paymentStatusCategory')) {
             $this->paymentStatusCategory = $object->paymentStatusCategory;
+        }
+        if (property_exists($object, 'tokenizationSucceeded')) {
+            $this->tokenizationSucceeded = $object->tokenizationSucceeded;
         }
         if (property_exists($object, 'tokens')) {
             $this->tokens = $object->tokens;

@@ -1,16 +1,20 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_Status_AbstractStatus as AbstractStatus;
+use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use Netresearch_Epayments_Model_Ingenico_Status_HandlerInterface as HandlerInterface;
 
-class Netresearch_Epayments_Model_Ingenico_Status_RejectedCapture extends AbstractStatus
+/**
+ * Class Netresearch_Epayments_Model_Ingenico_Status_RejectedCapture
+ */
+class Netresearch_Epayments_Model_Ingenico_Status_RejectedCapture implements HandlerInterface
 {
     /**
-     * {@inheritDoc}
+     * @param Mage_Sales_Model_Order $order
+     * @param AbstractOrderStatus $ingenicoStatus
      */
-    public function _apply(Mage_Sales_Model_Order $order)
+    public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
     {
-        /** @var Mage_Sales_Model_Order_Invoice $invoice */
-        $invoice = $this->getInvoiceForTransactionId($this->ingenicoOrderStatus->id, $order);
+        $invoice = $this->getInvoiceForTransactionId($ingenicoStatus->id, $order);
         if ($invoice) {
             $invoice->cancel();
         }
@@ -23,14 +27,16 @@ class Netresearch_Epayments_Model_Ingenico_Status_RejectedCapture extends Abstra
      * @param Mage_Sales_Model_Order $order
      * @return Mage_Sales_Model_Order_Invoice|false
      */
-    protected function getInvoiceForTransactionId($transactionId, $order)
+    protected function getInvoiceForTransactionId($transactionId, Mage_Sales_Model_Order $order)
     {
         foreach ($order->getInvoiceCollection() as $invoice) {
-            if ($invoice->getTransactionId() == $transactionId) {
+            if ($invoice->getTransactionId() === $transactionId) {
                 $invoice->load($invoice->getId());
+
                 return $invoice;
             }
         }
+
         return false;
     }
 }

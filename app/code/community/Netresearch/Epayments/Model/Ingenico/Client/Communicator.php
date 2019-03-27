@@ -34,7 +34,7 @@ class Netresearch_Epayments_Model_Ingenico_Client_Communicator extends \Ingenico
         $clientMetaInfo = '',
         \Ingenico\Connect\Sdk\RequestObject $requestParameters = null,
         \Ingenico\Connect\Sdk\CallContext $callContext = null
-    ) {
+    ) { 
         try {
             $result = parent::get($responseClassMap, $relativeUriPath, $clientMetaInfo, $requestParameters, $callContext);
         } catch (\Ingenico\Connect\Sdk\InvalidResponseException $e) {
@@ -59,7 +59,7 @@ class Netresearch_Epayments_Model_Ingenico_Client_Communicator extends \Ingenico
         $clientMetaInfo = '',
         \Ingenico\Connect\Sdk\RequestObject $requestParameters = null,
         \Ingenico\Connect\Sdk\CallContext $callContext = null
-    ) {
+    ) { 
         try {
             $result = parent::delete($responseClassMap, $relativeUriPath, $clientMetaInfo, $requestParameters, $callContext);
         } catch (\Ingenico\Connect\Sdk\InvalidResponseException $e) {
@@ -85,7 +85,7 @@ class Netresearch_Epayments_Model_Ingenico_Client_Communicator extends \Ingenico
         \Ingenico\Connect\Sdk\DataObject $body = null,
         \Ingenico\Connect\Sdk\RequestObject $requestParameters = null,
         \Ingenico\Connect\Sdk\CallContext $callContext = null
-    ) {
+    ) { 
         try {
             $result = parent::post($responseClassMap, $relativeUriPath, $clientMetaInfo, $body, $requestParameters, $callContext);
         } catch (\Ingenico\Connect\Sdk\InvalidResponseException $e) {
@@ -111,7 +111,7 @@ class Netresearch_Epayments_Model_Ingenico_Client_Communicator extends \Ingenico
         \Ingenico\Connect\Sdk\DataObject $body = null,
         \Ingenico\Connect\Sdk\RequestObject $requestParameters = null,
         \Ingenico\Connect\Sdk\CallContext $callContext = null
-    ) {
+    ) { 
         try {
             $result = parent::put($responseClassMap, $relativeUriPath, $clientMetaInfo, $body, $requestParameters, $callContext);
         } catch (\Ingenico\Connect\Sdk\InvalidResponseException $e) {

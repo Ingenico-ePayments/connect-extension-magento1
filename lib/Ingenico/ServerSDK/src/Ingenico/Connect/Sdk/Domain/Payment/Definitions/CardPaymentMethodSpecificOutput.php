@@ -7,8 +7,6 @@ namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
 use Ingenico\Connect\Sdk\Domain\Definitions\CardEssentials;
 use Ingenico\Connect\Sdk\Domain\Definitions\CardFraudResults;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\AbstractPaymentMethodSpecificOutput;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\ThreeDSecureResults;
 use UnexpectedValueException;
 
 /**
@@ -35,6 +33,11 @@ class CardPaymentMethodSpecificOutput extends AbstractPaymentMethodSpecificOutpu
      * @var ThreeDSecureResults
      */
     public $threeDSecureResults = null;
+
+    /**
+     * @var string
+     */
+    public $token = null;
 
     /**
      * @param object $object
@@ -67,6 +70,9 @@ class CardPaymentMethodSpecificOutput extends AbstractPaymentMethodSpecificOutpu
             }
             $value = new ThreeDSecureResults();
             $this->threeDSecureResults = $value->fromObject($object->threeDSecureResults);
+        }
+        if (property_exists($object, 'token')) {
+            $this->token = $object->token;
         }
         return $this;
     }

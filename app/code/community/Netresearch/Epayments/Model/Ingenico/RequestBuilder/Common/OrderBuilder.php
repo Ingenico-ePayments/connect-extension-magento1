@@ -27,6 +27,11 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_OrderBuilder
     protected $shoppingCartBuilder;
 
     /**
+     * @var Netresearch_Epayments_Model_Ingenico_MerchantReference
+     */
+    protected $merchantReference;
+
+    /**
      * Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_OrderBuilder constructor.
      */
     public function __construct()
@@ -37,6 +42,7 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_OrderBuilder
         $this->shoppingCartBuilder = Mage::getModel(
             'netresearch_epayments/ingenico_requestBuilder_common_shoppingCartBuilder'
         );
+        $this->merchantReference = Mage::getSingleton('netresearch_epayments/ingenico_merchantReference');
     }
 
     /**
@@ -77,7 +83,7 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_OrderBuilder
     protected function getReferences(Mage_Sales_Model_Order $order)
     {
         $references = new \Ingenico\Connect\Sdk\Domain\Payment\Definitions\OrderReferences();
-        $references->merchantReference = $order->getIncrementId();
+        $references->merchantReference = $this->merchantReference->generateMerchantReference($order);
         $references->descriptor = $this->ePaymentsConfig->getDescriptor();
 
         return $references;

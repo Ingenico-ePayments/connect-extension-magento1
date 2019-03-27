@@ -36,6 +36,7 @@ class Netresearch_Epayments_Block_Info_HostedCheckout extends Mage_Payment_Block
                 return $info;
             }
         }
+
         return null;
     }
 

@@ -24,13 +24,11 @@ use Ingenico\Connect\Sdk\ValidationException;
 
 /**
  * Tokens client.
- * Create, delete and update tokens
  */
 class Tokens extends Resource
 {
     /**
-     * Resource /{merchantId}/tokens
-     * Create token
+     * Resource /{merchantId}/tokens - Create token
      *
      * @param CreateTokenRequest $body
      * @param CallContext $callContext
@@ -48,8 +46,7 @@ class Tokens extends Resource
     public function create($body, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Token\CreateTokenResponse');
-        $responseClassMap->addResponseClassName(201, '\Ingenico\Connect\Sdk\Domain\Token\CreateTokenResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Token\CreateTokenResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/tokens'),
@@ -61,8 +58,7 @@ class Tokens extends Resource
     }
 
     /**
-     * Resource /{merchantId}/tokens/{tokenId}
-     * Get token
+     * Resource /{merchantId}/tokens/{tokenId} - Get token
      *
      * @param string $tokenId
      * @param CallContext $callContext
@@ -81,7 +77,7 @@ class Tokens extends Resource
     {
         $this->context['tokenId'] = $tokenId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Token\TokenResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Token\TokenResponse';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/tokens/{tokenId}'),
@@ -92,8 +88,7 @@ class Tokens extends Resource
     }
 
     /**
-     * Resource /{merchantId}/tokens/{tokenId}
-     * Update token
+     * Resource /{merchantId}/tokens/{tokenId} - Update token
      *
      * @param string $tokenId
      * @param UpdateTokenRequest $body
@@ -113,7 +108,6 @@ class Tokens extends Resource
     {
         $this->context['tokenId'] = $tokenId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(204, '');
         return $this->getCommunicator()->put(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/tokens/{tokenId}'),
@@ -125,8 +119,7 @@ class Tokens extends Resource
     }
 
     /**
-     * Resource /{merchantId}/tokens/{tokenId}
-     * Delete token
+     * Resource /{merchantId}/tokens/{tokenId} - Delete token
      *
      * @param string $tokenId
      * @param DeleteTokenParams $query
@@ -146,7 +139,6 @@ class Tokens extends Resource
     {
         $this->context['tokenId'] = $tokenId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(204, '');
         return $this->getCommunicator()->delete(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/tokens/{tokenId}'),
@@ -157,8 +149,7 @@ class Tokens extends Resource
     }
 
     /**
-     * Resource /{merchantId}/tokens/{tokenId}/approvesepadirectdebit
-     * Approve SEPA DD mandate
+     * Resource /{merchantId}/tokens/{tokenId}/approvesepadirectdebit - Approve SEPA DD mandate
      *
      * @param string $tokenId
      * @param ApproveTokenRequest $body
@@ -178,7 +169,6 @@ class Tokens extends Resource
     {
         $this->context['tokenId'] = $tokenId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(204, '');
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/tokens/{tokenId}/approvesepadirectdebit'),

@@ -1,31 +1,39 @@
 <?php
 
+use Ingenico\Connect\Sdk\Domain\Hostedcheckout\CreateHostedCheckoutRequest;
+use Ingenico\Connect\Sdk\Domain\Hostedcheckout\Definitions\HostedCheckoutSpecificInput;
+use Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_RequestBuilder as RequestBuilder;
 use Netresearch_Epayments_Model_Method_HostedCheckout as HostedCheckout;
-use Netresearch_Epayments_Model_Ingenico_RequestBuilder_AbstractRequestBuilder as AbstractRequestBuilder;
-use \Ingenico\Connect\Sdk\Domain\Hostedcheckout\CreateHostedCheckoutRequest;
-use \Ingenico\Connect\Sdk\Domain\Hostedcheckout\Definitions\HostedCheckoutSpecificInput;
-
 /**
  * Class Netresearch_Epayments_Model_Ingenico_RequestBuilder_CreateHostedCheckout_CreateHostedCheckoutRequestBuilder
  */
 class Netresearch_Epayments_Model_Ingenico_RequestBuilder_CreateHostedCheckout_CreateHostedCheckoutRequestBuilder
-    extends AbstractRequestBuilder
 {
     /**
      * @var Netresearch_Epayments_Model_TokenService
      */
-    protected $tokenService;
+    private $tokenService;
 
     /**
-     * Netresearch_Epayments_Model_Ingenico_RequestBuilder_CreateHostedCheckout_CreateHostedCheckoutRequestBuilder
-     * constructor.
+     * @var Netresearch_Epayments_Model_Config
+     */
+    private $config;
+
+    /**
+     * @var RequestBuilder
+     */
+    private $requestBuilder;
+
+    /**
+     * CreateHostedCheckoutRequestBuilder constructor.
      */
     public function __construct()
     {
-        $this->tokenService = Mage::getModel('netresearch_epayments/tokenService');
-        $this->requestObject = new CreateHostedCheckoutRequest();
-
-        parent::__construct();
+        $this->tokenService = Mage::getSingleton('netresearch_epayments/tokenService');
+        $this->config = Mage::getSingleton('netresearch_epayments/config');
+        $this->requestBuilder = Mage::getSingleton(
+            'netresearch_epayments/ingenico_requestBuilder_common_requestBuilder'
+        );
     }
 
     /**
@@ -34,7 +42,9 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_CreateHostedCheckout_C
      */
     public function create(Mage_Sales_Model_Order $order)
     {
-        $request = parent::create($order);
+        $request = new CreateHostedCheckoutRequest();
+        $request = $this->requestBuilder->create($request, $order);
+
         $request->hostedCheckoutSpecificInput = $this->buildHostedCheckoutSpecificInput($order);
 
         return $request;
@@ -48,10 +58,14 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_CreateHostedCheckout_C
     {
         $specificInput = new HostedCheckoutSpecificInput();
         $specificInput->locale = Mage::app()->getLocale()->getLocaleCode();
-        $specificInput->returnUrl = Mage::getUrl(self::HOSTED_CHECKOUT_RETURN_URL);
+        $specificInput->returnUrl = Mage::getUrl(RequestBuilder::HOSTED_CHECKOUT_RETURN_URL);
         $specificInput->showResultPage = false;
         $specificInput->tokens = $this->getTokens($order);
         $specificInput->validateShoppingCart = true;
+        $specificInput->returnCancelState = true;
+        if ($variant = $this->config->getHostedCheckoutVariant($order->getStoreId())) {
+            $specificInput->variant = $variant;
+        }
 
         return $specificInput;
     }
@@ -80,6 +94,7 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_CreateHostedCheckout_C
         foreach ($tokens as $token) {
             $result[] = $token->getTokenString();
         }
+
         return implode(',', $result);
     }
 }

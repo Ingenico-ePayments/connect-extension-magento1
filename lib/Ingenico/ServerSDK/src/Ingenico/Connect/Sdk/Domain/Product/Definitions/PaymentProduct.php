@@ -6,10 +6,6 @@
 namespace Ingenico\Connect\Sdk\Domain\Product\Definitions;
 
 use Ingenico\Connect\Sdk\DataObject;
-use Ingenico\Connect\Sdk\Domain\Product\Definitions\AccountOnFile;
-use Ingenico\Connect\Sdk\Domain\Product\Definitions\AuthenticationIndicator;
-use Ingenico\Connect\Sdk\Domain\Product\Definitions\PaymentProductDisplayHints;
-use Ingenico\Connect\Sdk\Domain\Product\Definitions\PaymentProductField;
 use UnexpectedValueException;
 
 /**
@@ -73,6 +69,11 @@ class PaymentProduct extends DataObject
     public $id = null;
 
     /**
+     * @var bool
+     */
+    public $isJavaScriptRequired = null;
+
+    /**
      * @var int
      */
     public $maxAmount = null;
@@ -91,6 +92,21 @@ class PaymentProduct extends DataObject
      * @var string
      */
     public $paymentMethod = null;
+
+    /**
+     * @var PaymentProduct302SpecificData
+     */
+    public $paymentProduct302SpecificData = null;
+
+    /**
+     * @var PaymentProduct320SpecificData
+     */
+    public $paymentProduct320SpecificData = null;
+
+    /**
+     * @var PaymentProduct863SpecificData
+     */
+    public $paymentProduct863SpecificData = null;
 
     /**
      * @var string
@@ -165,6 +181,9 @@ class PaymentProduct extends DataObject
         if (property_exists($object, 'id')) {
             $this->id = $object->id;
         }
+        if (property_exists($object, 'isJavaScriptRequired')) {
+            $this->isJavaScriptRequired = $object->isJavaScriptRequired;
+        }
         if (property_exists($object, 'maxAmount')) {
             $this->maxAmount = $object->maxAmount;
         }
@@ -176,6 +195,27 @@ class PaymentProduct extends DataObject
         }
         if (property_exists($object, 'paymentMethod')) {
             $this->paymentMethod = $object->paymentMethod;
+        }
+        if (property_exists($object, 'paymentProduct302SpecificData')) {
+            if (!is_object($object->paymentProduct302SpecificData)) {
+                throw new UnexpectedValueException('value \'' . print_r($object->paymentProduct302SpecificData, true) . '\' is not an object');
+            }
+            $value = new PaymentProduct302SpecificData();
+            $this->paymentProduct302SpecificData = $value->fromObject($object->paymentProduct302SpecificData);
+        }
+        if (property_exists($object, 'paymentProduct320SpecificData')) {
+            if (!is_object($object->paymentProduct320SpecificData)) {
+                throw new UnexpectedValueException('value \'' . print_r($object->paymentProduct320SpecificData, true) . '\' is not an object');
+            }
+            $value = new PaymentProduct320SpecificData();
+            $this->paymentProduct320SpecificData = $value->fromObject($object->paymentProduct320SpecificData);
+        }
+        if (property_exists($object, 'paymentProduct863SpecificData')) {
+            if (!is_object($object->paymentProduct863SpecificData)) {
+                throw new UnexpectedValueException('value \'' . print_r($object->paymentProduct863SpecificData, true) . '\' is not an object');
+            }
+            $value = new PaymentProduct863SpecificData();
+            $this->paymentProduct863SpecificData = $value->fromObject($object->paymentProduct863SpecificData);
         }
         if (property_exists($object, 'paymentProductGroup')) {
             $this->paymentProductGroup = $object->paymentProductGroup;

@@ -1,8 +1,25 @@
 <?php
 
-class Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver
- implements Netresearch_Epayments_Model_Ingenico_Webhooks_EventDataResolverInterface
+use Netresearch_Epayments_Model_Ingenico_Webhooks_EventDataResolverInterface as EventDataResolverInterface;
+
+/**
+ * Class Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver
+ */
+class Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver implements EventDataResolverInterface
 {
+    /**
+     * @var Netresearch_Epayments_Model_Ingenico_MerchantReference
+     */
+    protected $merchantReference;
+
+    /**
+     * Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver constructor.
+     */
+    public function __construct()
+    {
+        $this->merchantReference = Mage::getSingleton('netresearch_epayments/ingenico_merchantReference');
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -17,8 +34,11 @@ class Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver
      */
     public function getMerchantReference(\Ingenico\Connect\Sdk\Domain\Webhooks\WebhooksEvent $event)
     {
+
         $this->assertCorrectEvent($event);
-        $merchantOrderId = $event->payment->paymentOutput->references->merchantReference;
+        $merchantOrderId = $this->merchantReference->extractOrderReference(
+            $event->payment->paymentOutput->references->merchantReference
+        );
 
         if ($merchantOrderId <= 0) {
             throw new RuntimeException('Merchant reference value is missing in Event response.');

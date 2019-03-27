@@ -28,11 +28,13 @@ class Netresearch_Epayments_Model_Ingenico_Webhooks_HelperAdapter
             $key = $this->config->getWebhooksSecretKey();
             $secretKeys[$keyId] = $key;
         }
+
         if ($this->config->getSecondaryWebhooksKeyId() && $this->config->getSecondaryWebhooksSecretKey()) {
             $secondaryKeyId = $this->config->getSecondaryWebhooksKeyId();
             $secondaryKey = $this->config->getSecondaryWebhooksSecretKey();
             $secretKeys[$secondaryKeyId] = $secondaryKey;
         }
+
         $secretKeyStore = new \Ingenico\Connect\Sdk\Webhooks\InMemorySecretKeyStore($secretKeys);
         $helper         = new \Ingenico\Connect\Sdk\Webhooks\WebhooksHelper($secretKeyStore);
 

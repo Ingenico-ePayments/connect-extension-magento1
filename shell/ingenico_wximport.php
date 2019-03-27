@@ -23,6 +23,7 @@ class Netresearch_Epayments_Shell_WxImport extends Mage_Shell_Abstract
         if ($date === false) {
             $date = 'yesterday';
         }
+
         foreach (\Mage::app()->getWebsites(true) as $website) {
             $storeId = $website->getDefaultGroup()->getDefaultStoreId();
             $this->processor->process($storeId, $date);

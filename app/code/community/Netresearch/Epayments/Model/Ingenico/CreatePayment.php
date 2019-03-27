@@ -6,7 +6,6 @@ use Netresearch_Epayments_Model_Ingenico_Api_ClientInterface as Client;
 use Netresearch_Epayments_Model_Ingenico_RequestBuilder_CreatePayment_CreatePaymentRequestBuilder as
     CreatePaymentRequestBuilder;
 use Ingenico\Connect\Sdk\Domain\Payment\CreatePaymentResponse;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\CreatePaymentResult;
 use Ingenico\Connect\Sdk\Domain\Payment\Definitions\MerchantAction;
 
 /**
@@ -33,9 +32,9 @@ class Netresearch_Epayments_Model_Ingenico_CreatePayment implements ActionInterf
     protected $requestBuilder;
 
     /**
-     * @var Netresearch_Epayments_Model_Ingenico_StatusFactory
+     * @var Netresearch_Epayments_Model_Ingenico_Status_ResolverInterface
      */
-    protected $statusFactory;
+    protected $statusResolver;
 
     /**
      * @var Netresearch_Epayments_Model_TokenService
@@ -58,7 +57,7 @@ class Netresearch_Epayments_Model_Ingenico_CreatePayment implements ActionInterf
     public function __construct()
     {
         $this->client = Mage::getModel('netresearch_epayments/ingenico_client');
-        $this->statusFactory = Mage::getModel('netresearch_epayments/ingenico_statusFactory');
+        $this->statusResolver = Mage::getModel('netresearch_epayments/ingenico_status_resolver');
         $this->tokenService = Mage::getModel('netresearch_epayments/tokenService');
         $this->checkoutSession = Mage::getSingleton('checkout/session');
         $this->epaymentsHelper = Mage::helper('netresearch_epayments');
@@ -92,8 +91,8 @@ class Netresearch_Epayments_Model_Ingenico_CreatePayment implements ActionInterf
             $this->handleMerchantAction($order, $response->merchantAction);
         }
 
-        $status = $this->statusFactory->create($paymentResponse);
-        $status->apply($order);
+        $this->statusResolver->resolve($order, $paymentResponse);
+
 
         $this->handleSuccessfulPayment($order, $response);
     }
@@ -105,9 +104,8 @@ class Netresearch_Epayments_Model_Ingenico_CreatePayment implements ActionInterf
     protected function processToken(
         Mage_Sales_Model_Order $order,
         CreatePaymentResponse $response
-    )
-    {
-        if ($order->getCustomerId() && $response->creationOutput->token) {
+    ) {
+        if ($response->creationOutput->token && $order->getCustomerId()) {
             $tokenString = $response->creationOutput->token;
             $this->tokenService->assignToken($order->getCustomerId(), $tokenString);
         }
@@ -122,8 +120,7 @@ class Netresearch_Epayments_Model_Ingenico_CreatePayment implements ActionInterf
     protected function handleMerchantAction(
         Mage_Sales_Model_Order $order,
         MerchantAction $merchantAction
-    )
-    {
+    ) {
         switch ($merchantAction->actionType) {
             case self::ACTION_TYPE_REDIRECT:
                 $url = $merchantAction->redirectData->redirectURL;
@@ -148,6 +145,7 @@ class Netresearch_Epayments_Model_Ingenico_CreatePayment implements ActionInterf
                         $data[] = $item->key . ': ' . $item->value;
                     }
                 }
+
                 $this->checkoutSession->addNotice(implode('; ', $data));
                 break;
             case self::ACTION_TYPE_SHOW_FORM:
@@ -162,8 +160,7 @@ class Netresearch_Epayments_Model_Ingenico_CreatePayment implements ActionInterf
     protected function handleSuccessfulPayment(
         Mage_Sales_Model_Order $order,
         CreatePaymentResponse $statusResponse
-    )
-    {
+    ) {
         $paymentId = $statusResponse->payment->id;
         $paymentStatus = $statusResponse->payment->status;
         $paymentStatusCode = $statusResponse->payment->statusOutput->statusCode;
@@ -181,22 +178,7 @@ class Netresearch_Epayments_Model_Ingenico_CreatePayment implements ActionInterf
             $this->checkoutSession->addSuccess('Status: ' . $info);
         }
 
-        /**
-         * Add payment history comment
-         */
-        if ($info) {
-            $order->addStatusHistoryComment(
-                sprintf(
-                    "%s (payment status: '%s', payment status code: '%s')",
-                    $info,
-                    $paymentStatus,
-                    $paymentStatusCode
-                )
-            );
-        }
-
         $order->addRelatedObject($payment);
-        $order->save();
 
         /**
          * Send new Order Email

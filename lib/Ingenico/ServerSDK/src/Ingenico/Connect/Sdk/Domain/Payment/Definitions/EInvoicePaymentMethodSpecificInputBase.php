@@ -5,19 +5,13 @@
  */
 namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
-use Ingenico\Connect\Sdk\Domain\Definitions\AbstractPaymentMethodSpecificInput;
 use UnexpectedValueException;
 
 /**
  * @package Ingenico\Connect\Sdk\Domain\Payment\Definitions
  */
-class EInvoicePaymentMethodSpecificInputBase extends AbstractPaymentMethodSpecificInput
+class EInvoicePaymentMethodSpecificInputBase extends AbstractEInvoicePaymentMethodSpecificInput
 {
-    /**
-     * @var bool
-     */
-    public $requiresApproval = null;
-
     /**
      * @param object $object
      * @return $this
@@ -26,9 +20,6 @@ class EInvoicePaymentMethodSpecificInputBase extends AbstractPaymentMethodSpecif
     public function fromObject($object)
     {
         parent::fromObject($object);
-        if (property_exists($object, 'requiresApproval')) {
-            $this->requiresApproval = $object->requiresApproval;
-        }
         return $this;
     }
 }

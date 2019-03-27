@@ -46,14 +46,16 @@ class Netresearch_Epayments_Model_Ingenico_GlobalCollect_StatusBuilder
         if (empty($possibleStatuses)) {
             // no applicable status found
             return false;
-        } elseif (count($possibleStatuses) === 1) {
-            $definiteStatus = array_shift($possibleStatuses);
-            return $this->orderStatusFactory->create($definiteStatus, $dataRecord);
-        } else {
+        }
+
+        if (count($possibleStatuses) !== 1) {
             // multiple possible statuses - need to consult record type/category
             $statuses = implode(', ', $possibleStatuses);
             $message = "Got multiple possible statuses, handling not implemented. Statuses: {$statuses}";
             \Mage::throwException($message);
         }
+
+        $definiteStatus = array_shift($possibleStatuses);
+        return $this->orderStatusFactory->create($definiteStatus, $dataRecord);
     }
 }

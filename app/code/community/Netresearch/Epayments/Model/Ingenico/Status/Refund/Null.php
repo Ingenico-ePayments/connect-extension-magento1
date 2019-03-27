@@ -1,14 +1,19 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_Status_Refund_AbstractStatus as AbstractStatus;
+use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use Netresearch_Epayments_Model_Ingenico_RefundHandlerInterface as RefundHandlerInterface;
 
-class Netresearch_Epayments_Model_Ingenico_Status_Refund_Null extends AbstractStatus
+/**
+ * Class Netresearch_Epayments_Model_Ingenico_Status_Refund_Null
+ */
+class Netresearch_Epayments_Model_Ingenico_Status_Refund_Null implements RefundHandlerInterface
 {
     /**
      * @param Mage_Sales_Model_Order $order
+     * @param AbstractOrderStatus $ingenicoStatus
      * @throws Mage_Core_Exception
      */
-    public function _apply(Mage_Sales_Model_Order $order)
+    public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
     {
         Mage::throwException('Status is not implemented');
     }

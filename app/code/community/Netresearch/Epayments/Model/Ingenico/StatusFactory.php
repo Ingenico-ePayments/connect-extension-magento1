@@ -4,15 +4,17 @@ use \Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
 use \Ingenico\Connect\Sdk\Domain\Payment\Definitions\Payment as IngenicoPayment;
 use \Ingenico\Connect\Sdk\Domain\Refund\Definitions\RefundResult as IngenicoRefund;
 use Netresearch_Epayments_Model_Ingenico_StatusInterface as StatusInterface;
-use Netresearch_Epayments_Model_Ingenico_RefundStatusInterface as RefundStatusInterface;
+use Netresearch_Epayments_Model_Ingenico_RefundHandlerInterface as RefundHandlerInterface;
 
+/**
+ * Class Netresearch_Epayments_Model_Ingenico_StatusFactory
+ */
 class Netresearch_Epayments_Model_Ingenico_StatusFactory
 {
     /**
-     * @var array
+     * @var string[]
      */
     protected static $paymentStatusToClassPathMap = array(
-
         StatusInterface::REDIRECTED => 'netresearch_epayments/ingenico_status_redirected',
         StatusInterface::PENDING_PAYMENT => 'netresearch_epayments/ingenico_status_pendingPayment',
         StatusInterface::ACCOUNT_VERIFIED => 'netresearch_epayments/ingenico_status_null',
@@ -31,27 +33,27 @@ class Netresearch_Epayments_Model_Ingenico_StatusFactory
     );
 
     /**
-     * @var array
+     * @var string[]
      */
     protected static $refundStatusToClassPathMap = array(
-        RefundStatusInterface::REFUND_CREATED => 'netresearch_epayments/ingenico_status_refund_null',
-        RefundStatusInterface::REFUND_PENDING_APPROVAL => 'netresearch_epayments/ingenico_status_refund_pendingApproval',
-        RefundStatusInterface::REFUND_REJECTED => 'netresearch_epayments/ingenico_status_refund_cancelled',
-        RefundStatusInterface::REFUND_REFUND_REQUESTED => 'netresearch_epayments/ingenico_status_refund_refundRequested',
-        RefundStatusInterface::REFUND_CAPTURED => 'netresearch_epayments/ingenico_status_refund_refunded',
-        RefundStatusInterface::REFUND_REFUNDED => 'netresearch_epayments/ingenico_status_refund_refunded',
-        RefundStatusInterface::REFUND_CANCELLED => 'netresearch_epayments/ingenico_status_refund_cancelled'
+        RefundHandlerInterface::REFUND_CREATED => 'netresearch_epayments/ingenico_status_refund_null',
+        RefundHandlerInterface::REFUND_PENDING_APPROVAL => 'netresearch_epayments/ingenico_status_refund_pendingApproval',
+        RefundHandlerInterface::REFUND_REJECTED => 'netresearch_epayments/ingenico_status_refund_cancelled',
+        RefundHandlerInterface::REFUND_REFUND_REQUESTED => 'netresearch_epayments/ingenico_status_refund_refundRequested',
+        RefundHandlerInterface::REFUND_CAPTURED => 'netresearch_epayments/ingenico_status_refund_refunded',
+        RefundHandlerInterface::REFUND_REFUNDED => 'netresearch_epayments/ingenico_status_refund_refunded',
+        RefundHandlerInterface::REFUND_CANCELLED => 'netresearch_epayments/ingenico_status_refund_cancelled'
     );
 
     /**
      * @param AbstractOrderStatus|IngenicoPayment|IngenicoRefund $ingenicoOrderStatus
-     * @return StatusInterface|RefundStatusInterface
+     * @return StatusInterface|RefundHandlerInterface
      */
     public function create(AbstractOrderStatus $ingenicoOrderStatus)
     {
         $classPath = $this->resolveClassPath($ingenicoOrderStatus);
 
-        /** @var StatusInterface|RefundStatusInterface $status */
+        /** @var StatusInterface|RefundHandlerInterface $status */
         $status = Mage::getModel($classPath, array('gcOrderStatus' => $ingenicoOrderStatus));
 
         return $status;
@@ -65,8 +67,7 @@ class Netresearch_Epayments_Model_Ingenico_StatusFactory
     protected function resolveClassPath(AbstractOrderStatus $ingenicoOrderStatus)
     {
         $classPath = null;
-        if (
-            $ingenicoOrderStatus instanceof \Ingenico\Connect\Sdk\Domain\Payment\Definitions\Payment
+        if ($ingenicoOrderStatus instanceof \Ingenico\Connect\Sdk\Domain\Payment\Definitions\Payment
             || $ingenicoOrderStatus instanceof \Ingenico\Connect\Sdk\Domain\Capture\Definitions\Capture
         ) {
             $classPath = isset(self::$paymentStatusToClassPathMap[$ingenicoOrderStatus->status])

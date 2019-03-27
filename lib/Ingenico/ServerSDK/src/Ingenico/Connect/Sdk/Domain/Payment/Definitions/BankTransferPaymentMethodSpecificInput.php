@@ -5,13 +5,12 @@
  */
 namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\BankTransferPaymentMethodSpecificInputBase;
 use UnexpectedValueException;
 
 /**
  * @package Ingenico\Connect\Sdk\Domain\Payment\Definitions
  */
-class BankTransferPaymentMethodSpecificInput extends BankTransferPaymentMethodSpecificInputBase
+class BankTransferPaymentMethodSpecificInput extends AbstractBankTransferPaymentMethodSpecificInput
 {
     /**
      * @param object $object

@@ -24,7 +24,7 @@ class Netresearch_Epayments_Model_Ingenico_Client_CommunicatorLogger implements 
     public function logException(
         $message,
         Exception $exception
-    ) {
+    ) { 
         Mage::log(
             'Exception occured: ' . $message,
             Zend_Log::INFO,

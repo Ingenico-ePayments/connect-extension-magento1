@@ -1,14 +1,17 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_Status_AbstractStatus as AbstractStatus;
+use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use Netresearch_Epayments_Model_Ingenico_Status_HandlerInterface as HandlerInterface;
 
-class Netresearch_Epayments_Model_Ingenico_Status_Null extends AbstractStatus
+class Netresearch_Epayments_Model_Ingenico_Status_Null implements HandlerInterface
 {
     /**
-     * {@inheritDoc}
+     * @param Mage_Sales_Model_Order $order
+     * @param AbstractOrderStatus $ingenicoStatus
      */
-    public function _apply(Mage_Sales_Model_Order $order)
+    public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
     {
         Mage::throwException('Status is not implemented');
     }
+
 }

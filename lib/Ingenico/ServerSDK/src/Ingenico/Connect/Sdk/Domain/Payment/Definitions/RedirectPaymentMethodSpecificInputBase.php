@@ -5,38 +5,17 @@
  */
 namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
-use Ingenico\Connect\Sdk\Domain\Definitions\AbstractPaymentMethodSpecificInput;
 use UnexpectedValueException;
 
 /**
  * @package Ingenico\Connect\Sdk\Domain\Payment\Definitions
  */
-class RedirectPaymentMethodSpecificInputBase extends AbstractPaymentMethodSpecificInput
+class RedirectPaymentMethodSpecificInputBase extends AbstractRedirectPaymentMethodSpecificInput
 {
     /**
-     * @var int
+     * @var RedirectPaymentProduct840SpecificInputBase
      */
-    public $expirationPeriod = null;
-
-    /**
-     * @var string
-     */
-    public $recurringPaymentSequenceIndicator = null;
-
-    /**
-     * @var bool
-     */
-    public $requiresApproval = null;
-
-    /**
-     * @var string
-     */
-    public $token = null;
-
-    /**
-     * @var bool
-     */
-    public $tokenize = null;
+    public $paymentProduct840SpecificInput = null;
 
     /**
      * @param object $object
@@ -46,20 +25,12 @@ class RedirectPaymentMethodSpecificInputBase extends AbstractPaymentMethodSpecif
     public function fromObject($object)
     {
         parent::fromObject($object);
-        if (property_exists($object, 'expirationPeriod')) {
-            $this->expirationPeriod = $object->expirationPeriod;
-        }
-        if (property_exists($object, 'recurringPaymentSequenceIndicator')) {
-            $this->recurringPaymentSequenceIndicator = $object->recurringPaymentSequenceIndicator;
-        }
-        if (property_exists($object, 'requiresApproval')) {
-            $this->requiresApproval = $object->requiresApproval;
-        }
-        if (property_exists($object, 'token')) {
-            $this->token = $object->token;
-        }
-        if (property_exists($object, 'tokenize')) {
-            $this->tokenize = $object->tokenize;
+        if (property_exists($object, 'paymentProduct840SpecificInput')) {
+            if (!is_object($object->paymentProduct840SpecificInput)) {
+                throw new UnexpectedValueException('value \'' . print_r($object->paymentProduct840SpecificInput, true) . '\' is not an object');
+            }
+            $value = new RedirectPaymentProduct840SpecificInputBase();
+            $this->paymentProduct840SpecificInput = $value->fromObject($object->paymentProduct840SpecificInput);
         }
         return $this;
     }

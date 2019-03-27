@@ -31,6 +31,7 @@ class Netresearch_Epayments_Model_Ingenico_GlobalCollect_OrderStatusFactory
         if (\in_array($status, $this->refundStatuses, true)) {
             return $this->createRefundObject($status, $dataRecord);
         }
+
         return $this->createPaymentObject($status, $dataRecord);
     }
 

@@ -101,6 +101,7 @@ class Netresearch_Epayments_Model_Ingenico_GlobalCollect_Wx_DataRecord
                 }
             }
         }
+
         return $instance;
     }
 }

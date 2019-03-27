@@ -5,8 +5,6 @@
  */
 namespace Ingenico\Connect\Sdk\Domain\Definitions;
 
-use Ingenico\Connect\Sdk\Domain\Definitions\FraudResults;
-use Ingenico\Connect\Sdk\Domain\Definitions\FraudResultsRetailDecisions;
 use UnexpectedValueException;
 
 /**
@@ -23,6 +21,11 @@ class CardFraudResults extends FraudResults
      * @var string
      */
     public $cvvResult = null;
+
+    /**
+     * @var FraugsterResults
+     */
+    public $fraugster = null;
 
     /**
      * @var FraudResultsRetailDecisions
@@ -42,6 +45,13 @@ class CardFraudResults extends FraudResults
         }
         if (property_exists($object, 'cvvResult')) {
             $this->cvvResult = $object->cvvResult;
+        }
+        if (property_exists($object, 'fraugster')) {
+            if (!is_object($object->fraugster)) {
+                throw new UnexpectedValueException('value \'' . print_r($object->fraugster, true) . '\' is not an object');
+            }
+            $value = new FraugsterResults();
+            $this->fraugster = $value->fromObject($object->fraugster);
         }
         if (property_exists($object, 'retailDecisions')) {
             if (!is_object($object->retailDecisions)) {

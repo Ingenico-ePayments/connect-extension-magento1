@@ -1,6 +1,10 @@
 <?php
 
+use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use \Ingenico\Connect\Sdk\Domain\Capture\Definitions\Capture;
+use \Ingenico\Connect\Sdk\Domain\Payment\Definitions\Payment;
 use Netresearch_Epayments_Model_Method_HostedCheckout as HostedCheckout;
+use Netresearch_Epayments_Model_Ingenico_StatusInterface as StatusInterface;
 
 /**
  * Class Netresearch_Epayments_Model_Observer
@@ -11,6 +15,11 @@ class Netresearch_Epayments_Model_Observer
      * @var Netresearch_Epayments_Model_StatusResponseManager
      */
     protected $statusResponseManager;
+
+    /**
+     * @var int[]
+     */
+    protected $codesToOverWrite = array(800, 900, 975);
 
     /**
      * Netresearch_Epayments_Model_Observer constructor.
@@ -99,6 +108,7 @@ class Netresearch_Epayments_Model_Observer
         if (!$paymentMethod instanceof Netresearch_Epayments_Model_Method_HostedCheckout) {
             return;
         }
+
         /** @var Mage_Sales_Model_Order_Creditmemo $creditmemo */
         $creditmemo = $observer->getEvent()->getCreditmemo();
         $paymentResponse = $this->statusResponseManager->get($payment, $creditmemo->getTransactionId());
@@ -155,6 +165,7 @@ class Netresearch_Epayments_Model_Observer
             if (!$methodInstance instanceof Netresearch_Epayments_Model_Method_HostedCheckout) {
                 return;
             }
+
             $refundResponse = $this->statusResponseManager->get(
                 $methodInstance->getInfoInstance(),
                 $block->getCreditmemo()->getTransactionId()
@@ -164,5 +175,52 @@ class Netresearch_Epayments_Model_Observer
                 $block->removeButton('cancel');
             }
         }
+    }
+
+    /**
+     * Rewires the CAPTURE_REQUESTED status for GC CC to CAPTURED to be able to release goods sooner
+     *
+     * @param Varien_Event_Observer $observer
+     */
+    public function aroundResolveStatus(Varien_Event_Observer $observer)
+    {
+        /** @var Varien_Object $transportObject */
+        $transportObject = $observer->getEvent()->getData('transport');
+        $ingenicoStatus = $transportObject->getData('ingenico_status');
+
+        if ($this->shouldReplaceHandler($ingenicoStatus)) {
+            $statusHandler = Mage::getModel('netresearch_epayments/ingenico_status_captured');
+            $transportObject->setData('status_handler', $statusHandler);
+        }
+    }
+
+    /**
+     * @param $ingenicoStatus
+     * @return bool
+     */
+    protected function shouldReplaceHandler(AbstractOrderStatus $ingenicoStatus)
+    {
+        return ($ingenicoStatus instanceof Payment || $ingenicoStatus instanceof  Capture)
+                && $this->getMethod($ingenicoStatus) === 'card'
+                && $ingenicoStatus->status === StatusInterface::CAPTURE_REQUESTED
+                && in_array($ingenicoStatus->statusOutput->statusCode, $this->codesToOverWrite, true);
+    }
+
+    /**
+     * Extract method string from status object
+     *
+     * @param $ingenicoStatus
+     * @return string
+     */
+    protected function getMethod(AbstractOrderStatus $ingenicoStatus)
+    {
+        $method = '';
+        if ($ingenicoStatus instanceof Payment) {
+            $method = $ingenicoStatus->paymentOutput->paymentMethod;
+        } elseif ($ingenicoStatus instanceof Capture) {
+            $method = $ingenicoStatus->captureOutput->paymentMethod;
+        }
+
+        return $method;
     }
 }

@@ -12,7 +12,6 @@ use Ingenico\Connect\Sdk\DeclinedPayoutException;
 use Ingenico\Connect\Sdk\Domain\Payout\ApprovePayoutRequest;
 use Ingenico\Connect\Sdk\Domain\Payout\CreatePayoutRequest;
 use Ingenico\Connect\Sdk\Domain\Payout\FindPayoutsResponse;
-use Ingenico\Connect\Sdk\Domain\Payout\PayoutErrorResponse;
 use Ingenico\Connect\Sdk\Domain\Payout\PayoutResponse;
 use Ingenico\Connect\Sdk\GlobalCollectException;
 use Ingenico\Connect\Sdk\IdempotenceException;
@@ -25,13 +24,11 @@ use Ingenico\Connect\Sdk\ValidationException;
 
 /**
  * Payouts client.
- * Create, cancel and approve payouts
  */
 class Payouts extends Resource
 {
     /**
-     * Resource /{merchantId}/payouts
-     * Create payout
+     * Resource /{merchantId}/payouts - Create payout
      *
      * @param CreatePayoutRequest $body
      * @param CallContext $callContext
@@ -50,8 +47,8 @@ class Payouts extends Resource
     public function create($body, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(201, '\Ingenico\Connect\Sdk\Domain\Payout\PayoutResponse');
-        $responseClassMap->addResponseClassName(400, '\Ingenico\Connect\Sdk\Domain\Payout\PayoutErrorResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Payout\PayoutResponse';
+        $responseClassMap->defaultErrorResponseClassName = '\Ingenico\Connect\Sdk\Domain\Payout\PayoutErrorResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/payouts'),
@@ -63,8 +60,7 @@ class Payouts extends Resource
     }
 
     /**
-     * Resource /{merchantId}/payouts
-     * Find payouts
+     * Resource /{merchantId}/payouts - Find payouts
      *
      * @param FindPayoutsParams $query
      * @param CallContext $callContext
@@ -82,7 +78,7 @@ class Payouts extends Resource
     public function find($query, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Payout\FindPayoutsResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Payout\FindPayoutsResponse';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/payouts'),
@@ -93,8 +89,7 @@ class Payouts extends Resource
     }
 
     /**
-     * Resource /{merchantId}/payouts/{payoutId}
-     * Get payout
+     * Resource /{merchantId}/payouts/{payoutId} - Get payout
      *
      * @param string $payoutId
      * @param CallContext $callContext
@@ -113,7 +108,7 @@ class Payouts extends Resource
     {
         $this->context['payoutId'] = $payoutId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Payout\PayoutResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Payout\PayoutResponse';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/payouts/{payoutId}'),
@@ -124,8 +119,7 @@ class Payouts extends Resource
     }
 
     /**
-     * Resource /{merchantId}/payouts/{payoutId}/approve
-     * Approve payout
+     * Resource /{merchantId}/payouts/{payoutId}/approve - Approve payout
      *
      * @param string $payoutId
      * @param ApprovePayoutRequest $body
@@ -145,7 +139,7 @@ class Payouts extends Resource
     {
         $this->context['payoutId'] = $payoutId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Payout\PayoutResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Payout\PayoutResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/payouts/{payoutId}/approve'),
@@ -157,8 +151,7 @@ class Payouts extends Resource
     }
 
     /**
-     * Resource /{merchantId}/payouts/{payoutId}/cancel
-     * Cancel payout
+     * Resource /{merchantId}/payouts/{payoutId}/cancel - Cancel payout
      *
      * @param string $payoutId
      * @param CallContext $callContext
@@ -177,7 +170,6 @@ class Payouts extends Resource
     {
         $this->context['payoutId'] = $payoutId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(204, '');
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/payouts/{payoutId}/cancel'),
@@ -189,8 +181,7 @@ class Payouts extends Resource
     }
 
     /**
-     * Resource /{merchantId}/payouts/{payoutId}/cancelapproval
-     * Undo approve payout
+     * Resource /{merchantId}/payouts/{payoutId}/cancelapproval - Undo approve payout
      *
      * @param string $payoutId
      * @param CallContext $callContext
@@ -209,7 +200,6 @@ class Payouts extends Resource
     {
         $this->context['payoutId'] = $payoutId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(204, '');
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/payouts/{payoutId}/cancelapproval'),

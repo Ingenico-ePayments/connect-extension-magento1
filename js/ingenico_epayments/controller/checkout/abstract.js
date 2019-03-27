@@ -55,7 +55,7 @@ AbstractCheckoutController.prototype = {
      * @param {string} locale
      * @param {array} productGroupTitles - set by the Magento configuration
      */
-    initialize: function(
+    initialize: function (
         clientSessionId,
         customerId,
         assetUrl,
@@ -79,19 +79,23 @@ AbstractCheckoutController.prototype = {
     /**
      * Main controller action. Load product groups and register product radio buttns.
      */
-    execute: async function() {
-        var loader = new Loader(
-            document.querySelector('#' + 'ingenico_groups_container'),
-            'Loading payment methods...'
-        );
-        await this.doWithLoader(loader, await this.showProductGroups.bind(this));
+    execute: async function () {
+        try {
+            var loader = new Loader(
+                document.querySelector('#' + 'ingenico_groups_container'),
+                'Loading payment methods...'
+            );
+            await this.doWithLoader(loader, await this.showProductGroups.bind(this));
 
-        /**
-         * Handle product select event
-         */
-        var methodRadioButtons = document.querySelectorAll('.ingenico_payment_product_selector');
-        for (var element of methodRadioButtons) {
-            element.addEventListener('click', this.handleProductSelect.bind(this));
+            /**
+             * Handle product select event
+             */
+            var methodRadioButtons = document.querySelectorAll('.ingenico_payment_product_selector');
+            for (var element of methodRadioButtons) {
+                element.addEventListener('click', this.handleProductSelect.bind(this));
+            }
+        } catch (e) {
+            // nobody knows
         }
     },
 
@@ -101,7 +105,7 @@ AbstractCheckoutController.prototype = {
      * @protected
      * @param event
      */
-    handleProductSelect: async function(event) {
+    handleProductSelect: async function (event) {
         var input = event.target;
         var productId = input.value;
 
@@ -131,7 +135,7 @@ AbstractCheckoutController.prototype = {
      * @protected
      * @return {void}
      */
-    showProductGroups: async function() {
+    showProductGroups: async function () {
         /**
          * This part is not yet optimal, it would be better to let a repository do the sdkClient call.
          */
@@ -153,7 +157,7 @@ AbstractCheckoutController.prototype = {
      * @param {*} argument2
      * @returns {Promise<void>}
      */
-    doWithLoader: async function(loader, action, argument, argument2) {
+    doWithLoader: async function (loader, action, argument, argument2) {
         loader.show();
         try {
             await action(argument, argument2)

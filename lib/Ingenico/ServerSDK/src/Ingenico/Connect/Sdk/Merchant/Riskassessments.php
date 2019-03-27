@@ -21,13 +21,11 @@ use Ingenico\Connect\Sdk\ValidationException;
 
 /**
  * Risk assessments client.
- * Perform risk assessments on your customer data
  */
 class Riskassessments extends Resource
 {
     /**
-     * Resource /{merchantId}/riskassessments/bankaccounts
-     * Risk-assess bankaccount
+     * Resource /{merchantId}/riskassessments/bankaccounts - Risk-assess bankaccount
      *
      * @param RiskAssessmentBankAccount $body
      * @param CallContext $callContext
@@ -45,7 +43,7 @@ class Riskassessments extends Resource
     public function bankaccounts($body, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Riskassessments\RiskAssessmentResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Riskassessments\RiskAssessmentResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/riskassessments/bankaccounts'),
@@ -57,8 +55,7 @@ class Riskassessments extends Resource
     }
 
     /**
-     * Resource /{merchantId}/riskassessments/cards
-     * Risk-assess card
+     * Resource /{merchantId}/riskassessments/cards - Risk-assess card
      *
      * @param RiskAssessmentCard $body
      * @param CallContext $callContext
@@ -76,7 +73,7 @@ class Riskassessments extends Resource
     public function cards($body, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Riskassessments\RiskAssessmentResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Riskassessments\RiskAssessmentResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/riskassessments/cards'),

@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Netresearch_Epayments>
-            <version>1.3.2</version>
+            <version>1.4.0</version>
         </Netresearch_Epayments>
     </modules>
     <global>
@@ -51,6 +51,9 @@
                     <token>
                         <table>nr_epayments_customer_token</table>
                     </token>
+                    <event>
+                        <table>epayments_webhook_event</table>
+                    </event>
                 </entities>
             </netresearch_epayments_resources>
         </models>
@@ -100,6 +103,15 @@
                     </netresearch_epayments>
                 </observers>
             </sales_order_payment_cancel_creditmemo>
+            <ingenico_status_resolve_before>
+                <observers>
+                    <netresearch_epayments>
+                        <class>netresearch_epayments/observer</class>
+                        <type>singleton</type>
+                        <method>aroundResolveStatus</method>
+                    </netresearch_epayments>
+                </observers>
+            </ingenico_status_resolve_before>
         </events>
     </global>
 
@@ -138,6 +150,13 @@
     </admin>
 
     <adminhtml>
+        <layout>
+            <updates>
+                <ingenico_epayments>
+                    <file>ingenico_epayments.xml</file>
+                </ingenico_epayments>
+            </updates>
+        </layout>
         <events>
             <adminhtml_widget_container_html_before>
                 <observers>
@@ -179,14 +198,14 @@
                     <model>netresearch_epayments/orderUpdate_observer::processPendingOrder</model>
                 </run>
             </ingenico_process_pending_orders>
-            <ingenico_process_wr_file>
+            <ingenico_process_webhook_events>
                 <schedule>
-                    <cron_expr>30 4 * * *</cron_expr>
+                    <cron_expr>*/5 * * * *</cron_expr>
                 </schedule>
                 <run>
-                    <model>netresearch_epayments/cron_fetchWxFiles::execute</model>
+                    <model>netresearch_epayments/cron_processEvents::execute</model>
                 </run>
-            </ingenico_process_wr_file>
+            </ingenico_process_webhook_events>
         </jobs>
     </crontab>
 
@@ -255,6 +274,7 @@
                 <delayed_settlement>1</delayed_settlement>
                 <slow_3rd_party>1</slow_3rd_party>
             </email_settings>
+            <account_verified>0</account_verified>
         </ingenico_epayments>
     </default>
 
@@ -265,8 +285,8 @@
             <bankTransfer>netresearch_epayments/ingenico_requestBuilder_specificInput_bankTransferDecorator</bankTransfer>
             <cash>netresearch_epayments/ingenico_requestBuilder_specificInput_cashDecorator</cash>
             <eInvoice>netresearch_epayments/ingenico_requestBuilder_specificInput_eInvoiceDecorator</eInvoice>
-            <sepaDirectDebit>netresearch_epayments/ingenico_requestBuilder_specificInput_sepaDirectDebitDecorator</sepaDirectDebit>
-            <directDebit>netresearch_epayments/ingenico_requestBuilder_specificInput_directDebitDecorator</directDebit>
+            <directDebit>netresearch_epayments/ingenico_requestBuilder_specificInput_sepaDirectDebitDecorator</directDebit>
+            <nonSepaDirectDebit>netresearch_epayments/ingenico_requestBuilder_specificInput_directDebitDecorator</nonSepaDirectDebit>
         </decorator_mappings>
     </hosted_checkout>
 </config>

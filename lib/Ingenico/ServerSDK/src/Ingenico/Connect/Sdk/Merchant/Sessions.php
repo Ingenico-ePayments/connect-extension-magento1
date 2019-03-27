@@ -20,13 +20,11 @@ use Ingenico\Connect\Sdk\ValidationException;
 
 /**
  * Sessions client.
- * Create new Session for Client2Server API calls
  */
 class Sessions extends Resource
 {
     /**
-     * Resource /{merchantId}/sessions
-     * Create session
+     * Resource /{merchantId}/sessions - Create session
      *
      * @param SessionRequest $body
      * @param CallContext $callContext
@@ -44,7 +42,7 @@ class Sessions extends Resource
     public function create($body, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Sessions\SessionResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Sessions\SessionResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/sessions'),

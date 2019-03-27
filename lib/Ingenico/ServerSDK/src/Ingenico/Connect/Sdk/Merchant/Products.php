@@ -31,13 +31,11 @@ use Ingenico\Connect\Sdk\ValidationException;
 
 /**
  * Products client.
- * Get information about payment products
  */
 class Products extends Resource
 {
     /**
-     * Resource /{merchantId}/products
-     * Get payment products
+     * Resource /{merchantId}/products - Get payment products
      *
      * @param FindProductsParams $query
      * @param CallContext $callContext
@@ -55,7 +53,7 @@ class Products extends Resource
     public function find($query, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Product\PaymentProducts');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Product\PaymentProducts';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/products'),
@@ -66,8 +64,7 @@ class Products extends Resource
     }
 
     /**
-     * Resource /{merchantId}/products/{paymentProductId}
-     * Get payment product
+     * Resource /{merchantId}/products/{paymentProductId} - Get payment product
      *
      * @param int $paymentProductId
      * @param GetProductParams $query
@@ -87,7 +84,7 @@ class Products extends Resource
     {
         $this->context['paymentProductId'] = $paymentProductId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Product\PaymentProductResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Product\PaymentProductResponse';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/products/{paymentProductId}'),
@@ -98,8 +95,7 @@ class Products extends Resource
     }
 
     /**
-     * Resource /{merchantId}/products/{paymentProductId}/directory
-     * Get payment product directory
+     * Resource /{merchantId}/products/{paymentProductId}/directory - Get payment product directory
      *
      * @param int $paymentProductId
      * @param DirectoryParams $query
@@ -119,7 +115,7 @@ class Products extends Resource
     {
         $this->context['paymentProductId'] = $paymentProductId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Product\Directory');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Product\Directory';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/products/{paymentProductId}/directory'),
@@ -130,8 +126,7 @@ class Products extends Resource
     }
 
     /**
-     * Resource /{merchantId}/products/{paymentProductId}/customerDetails
-     * Get customer details
+     * Resource /{merchantId}/products/{paymentProductId}/customerDetails - Get customer details
      *
      * @param int $paymentProductId
      * @param GetCustomerDetailsRequest $body
@@ -151,7 +146,7 @@ class Products extends Resource
     {
         $this->context['paymentProductId'] = $paymentProductId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Product\GetCustomerDetailsResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Product\GetCustomerDetailsResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/products/{paymentProductId}/customerDetails'),
@@ -163,8 +158,7 @@ class Products extends Resource
     }
 
     /**
-     * Resource /{merchantId}/products/{paymentProductId}/deviceFingerprint
-     * Get device fingerprint
+     * Resource /{merchantId}/products/{paymentProductId}/deviceFingerprint - Get device fingerprint
      *
      * @param int $paymentProductId
      * @param DeviceFingerprintRequest $body
@@ -184,7 +178,7 @@ class Products extends Resource
     {
         $this->context['paymentProductId'] = $paymentProductId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Product\DeviceFingerprintResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Product\DeviceFingerprintResponse';
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/products/{paymentProductId}/deviceFingerprint'),
@@ -196,8 +190,7 @@ class Products extends Resource
     }
 
     /**
-     * Resource /{merchantId}/products/{paymentProductId}/networks
-     * Get payment product networks
+     * Resource /{merchantId}/products/{paymentProductId}/networks - Get payment product networks
      *
      * @param int $paymentProductId
      * @param NetworksParams $query
@@ -217,7 +210,7 @@ class Products extends Resource
     {
         $this->context['paymentProductId'] = $paymentProductId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Product\PaymentProductNetworksResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Product\PaymentProductNetworksResponse';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/products/{paymentProductId}/networks'),
@@ -228,8 +221,7 @@ class Products extends Resource
     }
 
     /**
-     * Resource /{merchantId}/products/{paymentProductId}/publicKey
-     * Get payment product specific public key
+     * Resource /{merchantId}/products/{paymentProductId}/publicKey - Get payment product specific public key
      *
      * @param int $paymentProductId
      * @param CallContext $callContext
@@ -248,7 +240,7 @@ class Products extends Resource
     {
         $this->context['paymentProductId'] = $paymentProductId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Publickey\PublicKey');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Publickey\PublicKey';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/products/{paymentProductId}/publicKey'),

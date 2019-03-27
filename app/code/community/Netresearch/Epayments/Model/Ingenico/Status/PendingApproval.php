@@ -1,20 +1,52 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_Status_AbstractStatus as AbstractStatus;
+use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use Netresearch_Epayments_Model_Ingenico_Status_HandlerInterface as HandlerInterface;
+use Netresearch_Epayments_Model_Order_EmailInterface as OrderEmailMananger;
 
-class Netresearch_Epayments_Model_Ingenico_Status_PendingApproval extends AbstractStatus
+/**
+ * Class Netresearch_Epayments_Model_Ingenico_Status_PendingApproval
+ */
+class Netresearch_Epayments_Model_Ingenico_Status_PendingApproval implements HandlerInterface
 {
     /**
-     * {@inheritDoc}
+     * @var OrderEmailMananger
      */
-    public function _apply(Mage_Sales_Model_Order $order)
+    protected $orderEMailManager;
+
+    /**
+     * @var Netresearch_Epayments_Model_ConfigInterface
+     */
+    protected $moduleConfig;
+
+    /**
+     * Netresearch_Epayments_Model_Ingenico_Status_PendingApproval constructor.
+     */
+    public function __construct()
+    {
+        $this->orderEMailManager = Mage::getModel('netresearch_epayments/order_emailManager');
+        $this->moduleConfig = Mage::getModel('netresearch_epayments/config');
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     * @param AbstractOrderStatus $ingenicoStatus
+     */
+    public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
     {
         $payment = $order->getPayment();
-        $amount = $this->ingenicoOrderStatus->paymentOutput->amountOfMoney->amount;
+        $amount = $ingenicoStatus->paymentOutput->amountOfMoney->amount;
         $amount /= 100;
 
         $payment->setIsTransactionClosed(false);
-        $payment->registerAuthorizationNotification($amount);
-        $this->orderEMailManager->process($order, $this->getStatus());
+        if ($order->getEntityId() !== null &&
+            $this->moduleConfig->getCheckoutType(
+                $order->getStoreId()
+            ) !== Netresearch_Epayments_Model_Config::CONFIG_INGENICO_CHECKOUT_TYPE_INLINE) {
+            $payment->registerAuthorizationNotification($amount);
+        }
+
+        $this->orderEMailManager->process($order, $ingenicoStatus->status);
     }
+
 }

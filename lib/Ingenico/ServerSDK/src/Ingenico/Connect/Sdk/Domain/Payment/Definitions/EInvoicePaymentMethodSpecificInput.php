@@ -5,14 +5,12 @@
  */
 namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\EInvoicePaymentMethodSpecificInputBase;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\EInvoicePaymentProduct9000SpecificInput;
 use UnexpectedValueException;
 
 /**
  * @package Ingenico\Connect\Sdk\Domain\Payment\Definitions
  */
-class EInvoicePaymentMethodSpecificInput extends EInvoicePaymentMethodSpecificInputBase
+class EInvoicePaymentMethodSpecificInput extends AbstractEInvoicePaymentMethodSpecificInput
 {
     /**
      * @var bool

@@ -5,7 +5,6 @@
  */
 namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\PaymentCreationReferences;
 use UnexpectedValueException;
 
 /**
@@ -24,6 +23,11 @@ class PaymentCreationOutput extends PaymentCreationReferences
     public $token = null;
 
     /**
+     * @var bool
+     */
+    public $tokenizationSucceeded = null;
+
+    /**
      * @param object $object
      * @return $this
      * @throws UnexpectedValueException
@@ -36,6 +40,9 @@ class PaymentCreationOutput extends PaymentCreationReferences
         }
         if (property_exists($object, 'token')) {
             $this->token = $object->token;
+        }
+        if (property_exists($object, 'tokenizationSucceeded')) {
+            $this->tokenizationSucceeded = $object->tokenizationSucceeded;
         }
         return $this;
     }

@@ -32,13 +32,14 @@ class Netresearch_Epayments_Model_Ingenico_Client implements ClientInterface
     public function __construct(array $args = array())
     {
         $ePaymentsConfig = isset($args['ePaymentsConfig'])
-                && $args['ePaymentsConfig'] instanceof Netresearch_Epayments_Model_ConfigInterface
+                           && $args['ePaymentsConfig'] instanceof Netresearch_Epayments_Model_ConfigInterface
             ? $args['ePaymentsConfig']
             : null;
 
         if (null === $ePaymentsConfig) {
             $ePaymentsConfig = Mage::getSingleton('netresearch_epayments/config');
         }
+
         $this->ePaymentsConfig = $ePaymentsConfig;
     }
 
@@ -48,41 +49,28 @@ class Netresearch_Epayments_Model_Ingenico_Client implements ClientInterface
     protected function initialize($scopeId)
     {
         if (!isset($this->ingenicoClient[$scopeId])) {
-            $communicatorConfig = new CommunicatorConfiguration(
-                $this->ePaymentsConfig->getApiKey($scopeId),
-                $this->ePaymentsConfig->getApiSecret($scopeId),
-                $this->ePaymentsConfig->getApiEndpoint($scopeId),
-                $this->ePaymentsConfig->getIntegrator()
+            $communicatorConfig = $this->getCommunicatorConfig($scopeId);
+            $secondaryCommunicatorConfig = $this->getCommunicatorConfig(
+                $scopeId,
+                array(
+                    'api_endpoint' => $this->ePaymentsConfig->getSecondaryApiEndpoint(),
+                )
             );
-            $secondaryCommunicatorConfig = new CommunicatorConfiguration(
-                $this->ePaymentsConfig->getApiKey($scopeId),
-                $this->ePaymentsConfig->getApiSecret($scopeId),
-                $this->ePaymentsConfig->getSecondaryApiEndpoint($scopeId),
-                $this->ePaymentsConfig->getIntegrator()
-            );
-            $communicator = new Communicator(
-                new DefaultConnection(), $communicatorConfig
-            );
-            $communicator->setSecondaryCommunicatorConfiguration($secondaryCommunicatorConfig);
-            $this->ingenicoClient[$scopeId] = new Client($communicator);
-
-            if ($this->ePaymentsConfig->getLogAllRequests($scopeId)) {
-                /** @var \Ingenico\Connect\Sdk\CommunicatorLogger|CommunicatorLogger $communicatorLogger */
-                $communicatorLogger = Mage::getModel('netresearch_epayments/ingenico_client_communicatorLogger');
-                $this->ingenicoClient[$scopeId]->enableLogging($communicatorLogger);
-            }
+            $client = $this->buildClient($scopeId, $communicatorConfig, $secondaryCommunicatorConfig);
+            $this->ingenicoClient[$scopeId] = $client;
         }
     }
 
     /**
      * {@inheritDoc}
      */
-    public function getIngenicoClient($scopeId = null)
+    public function getIngenicoClient($scopeId = null, $data = array())
     {
         if ($scopeId === null) {
             $scopeId = Mage::app()->getStore()->getId();
         }
-        $this->initialize($scopeId);
+
+        $this->initialize($scopeId, $data);
         return $this->ingenicoClient[$scopeId];
     }
 
@@ -116,5 +104,69 @@ class Netresearch_Epayments_Model_Ingenico_Client implements ClientInterface
             ->create($request);
 
         return $response;
+    }
+
+    /**
+     * @param null $scopeId
+     * @param array $data
+     * @return \Ingenico\Connect\Sdk\Domain\Services\TestConnection
+     */
+    public function ingenicoTestAccount($scopeId = null, $data = array())
+    {
+        $client = $this->buildClient($scopeId, $this->getCommunicatorConfig($scopeId, $data));
+        $response = $client
+            ->merchant($data['merchant_id'])
+            ->services()
+            ->testconnection();
+
+        return $response;
+    }
+
+    /**
+     * @param int|null $scopeId
+     * @param array $data
+     * @return CommunicatorConfiguration
+     */
+    protected function getCommunicatorConfig($scopeId = null, $data = array())
+    {
+        $apiKey = !empty($data['api_key']) ? $data['api_key'] : $this->ePaymentsConfig->getApiKey($scopeId);
+        $apiSecret = !empty($data['api_secret']) ? $data['api_secret'] : $this->ePaymentsConfig->getApiSecret($scopeId);
+        $apiEndpoint = !empty($data['api_endpoint']) ?
+            $data['api_endpoint'] : $this->ePaymentsConfig->getApiEndpoint($scopeId);
+
+        $communicatorConfig = new CommunicatorConfiguration(
+            $apiKey,
+            $apiSecret,
+            $apiEndpoint,
+            $this->ePaymentsConfig->getIntegrator()
+        );
+
+        return $communicatorConfig;
+    }
+
+    /**
+     * @param $scopeId
+     * @param $config
+     * @param $secondaryConfig
+     * @return Client
+     */
+    protected function buildClient($scopeId, $config, $secondaryConfig = null)
+    {
+        $communicator = new Communicator(
+            new DefaultConnection(), $config
+        );
+        if ($secondaryConfig !== null) {
+            $communicator->setSecondaryCommunicatorConfiguration($secondaryConfig);
+        }
+
+        $client = new Client($communicator);
+
+        if ($this->ePaymentsConfig->getLogAllRequests($scopeId)) {
+            /** @var \Ingenico\Connect\Sdk\CommunicatorLogger|CommunicatorLogger $communicatorLogger */
+            $communicatorLogger = Mage::getModel('netresearch_epayments/ingenico_client_communicatorLogger');
+            $client->enableLogging($communicatorLogger);
+        }
+
+        return $client;
     }
 }

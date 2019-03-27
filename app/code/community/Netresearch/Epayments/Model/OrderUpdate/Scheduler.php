@@ -49,7 +49,7 @@ class Netresearch_Epayments_Model_OrderUpdate_Scheduler
         Mage_Sales_Model_Order $order,
         $timestamp,
         $skipLogging = true
-    ) {
+    ) { 
         // build timestamp from date created
         $orderDateCreatedTimestamp = Varien_Date::toTimestamp($order->getCreatedAt());
 

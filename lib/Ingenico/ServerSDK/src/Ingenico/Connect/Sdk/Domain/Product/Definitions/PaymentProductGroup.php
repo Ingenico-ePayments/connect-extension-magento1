@@ -6,9 +6,6 @@
 namespace Ingenico\Connect\Sdk\Domain\Product\Definitions;
 
 use Ingenico\Connect\Sdk\DataObject;
-use Ingenico\Connect\Sdk\Domain\Product\Definitions\AccountOnFile;
-use Ingenico\Connect\Sdk\Domain\Product\Definitions\PaymentProductDisplayHints;
-use Ingenico\Connect\Sdk\Domain\Product\Definitions\PaymentProductField;
 use UnexpectedValueException;
 
 /**
@@ -20,6 +17,11 @@ class PaymentProductGroup extends DataObject
      * @var AccountOnFile[]
      */
     public $accountsOnFile = null;
+
+    /**
+     * @var bool
+     */
+    public $deviceFingerprintEnabled = null;
 
     /**
      * @var PaymentProductDisplayHints
@@ -53,6 +55,9 @@ class PaymentProductGroup extends DataObject
                 $accountsOnFileElement = new AccountOnFile();
                 $this->accountsOnFile[] = $accountsOnFileElement->fromObject($accountsOnFileElementObject);
             }
+        }
+        if (property_exists($object, 'deviceFingerprintEnabled')) {
+            $this->deviceFingerprintEnabled = $object->deviceFingerprintEnabled;
         }
         if (property_exists($object, 'displayHints')) {
             if (!is_object($object->displayHints)) {

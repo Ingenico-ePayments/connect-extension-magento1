@@ -11,7 +11,8 @@ class Netresearch_Epayments_Model_Observer_Autoloader extends Varien_Event_Obser
      * @event controller_front_init_before
      * @param Varien_Event_Observer $event
      */
-    public function controllerFrontInitBefore($event) {
+    public function controllerFrontInitBefore($event) 
+    {
         Netresearch_Epayments_Model_Autoloader::register();
     }
 }

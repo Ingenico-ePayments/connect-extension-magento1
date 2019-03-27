@@ -5,6 +5,9 @@
  */
 class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_CustomerBuilder
 {
+    const GENDER_MALE = 1;
+    const GENDER_FEMALE = 2;
+
     /**
      * @param Mage_Sales_Model_Order $order
      * @return \Ingenico\Connect\Sdk\Domain\Payment\Definitions\Customer
@@ -52,10 +55,27 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_CustomerBuilder
         $personalName->surname = $order->getCustomerLastname();
 
         $personalInformation->name = $personalName;
-        $personalInformation->gender = $order->getCustomerGender();
-        $personalInformation->dateOfBirth = $order->getCustomerDob();
+        $personalInformation->gender = $this->getCustomerGender($order);
+        $personalInformation->dateOfBirth = $this->getDateOfBirth($order);
 
         return $personalInformation;
+    }
+
+    /**
+     * Extracts the date of birth in the YYYYMMDD format required by the API
+     *
+     * @param $order
+     * @return string dob in proper format
+     */
+    protected function getDateOfBirth($order)
+    {
+        $dateOfBirth = '';
+        if ($order->getCustomerDob()) {
+            $dateOfBirthObject = new \DateTime($order->getCustomerDob());
+            $dateOfBirth = $dateOfBirthObject->format('Ymd');
+        }
+
+        return $dateOfBirth;
     }
 
     /**
@@ -66,8 +86,7 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_CustomerBuilder
     protected function getContactDetails(
         Mage_Sales_Model_Order $order,
         Mage_Sales_Model_Order_Address $billing
-    )
-    {
+    ) {
         $contactDetails = new \Ingenico\Connect\Sdk\Domain\Payment\Definitions\ContactDetails();
         $contactDetails->emailAddress = $order->getCustomerEmail();
         $contactDetails->emailMessageType = Netresearch_Epayments_Helper_Data::EMAIL_MESSAGE_TYPE;
@@ -90,6 +109,7 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_CustomerBuilder
         if (!empty($streetArray)) {
             $billingAddress->additionalInfo = implode(', ', $streetArray);
         }
+
         $billingAddress->zip = $billing->getPostcode();
         $billingAddress->city = $billing->getCity();
         $billingAddress->state = $billing->getRegion();
@@ -106,8 +126,7 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_CustomerBuilder
     protected function getAddressPersonal(
         Mage_Sales_Model_Order_Address $shipping,
         Mage_Sales_Model_Order_Address $billing
-    )
-    {
+    ) {
         $shippingName = new \Ingenico\Connect\Sdk\Domain\Payment\Definitions\PersonalName();
         $shippingName->title = $shipping->getPrefix();
         $shippingName->firstName = $shipping->getFirstname();
@@ -121,11 +140,28 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_CustomerBuilder
         if (!empty($streetArray)) {
             $shippingAddress->additionalInfo = implode(', ', $streetArray);
         }
+
         $shippingAddress->zip = $shipping->getPostcode();
         $shippingAddress->city = $shipping->getCity();
         $shippingAddress->state = $shipping->getRegion();
         $shippingAddress->countryCode = $shipping->getCountry();
 
         return $shippingAddress;
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     * @return string
+     */
+    protected function getCustomerGender($order)
+    {
+        switch ($order->getCustomerGender()) {
+            case self::GENDER_MALE:
+                return 'male';
+            case self::GENDER_FEMALE:
+                return 'female';
+            default:
+                return 'unknown';
+        }
     }
 }

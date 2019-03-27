@@ -2,12 +2,7 @@
 /**
  * Netresearch_Epayments
  *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
+ * See LICENSE.txt for license details.
  *
  * DISCLAIMER
  *
@@ -17,8 +12,7 @@
  * @category  Epayments
  * @package   Netresearch_Epayments
  * @author    Paul Siedler <paul.siedler@netresearch.de>
- * @copyright 2017 Netresearch GmbH & Co. KG
- * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
+ * @license   https://opensource.org/licenses/MIT
  * @link      http://www.netresearch.de/
  */
 
@@ -32,7 +26,7 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
     const CONFIG_INGENICO_WEBHOOKS_SECRET_KEY = 'ingenico_epayments/webhooks/secret_key';
     const CONFIG_INGENICO_WEBHOOKS_KEY_ID_SECONDARY = 'ingenico_epayments/webhooks/key_id_secondary';
     const CONFIG_INGENICO_WEBHOOKS_SECRET_KEY_SECONDARY = 'ingenico_epayments/webhooks/secret_key_secondary';
-    const CONFIG_INGENICO_API_KEY = 'ingenico_epayments/settings/api_key';
+    const CONFIG_INGENICO_API_KEY_ID = 'ingenico_epayments/settings/api_key';
     const CONFIG_INGENICO_API_SECRET = 'ingenico_epayments/settings/api_secret';
     const CONFIG_INGENICO_MERCHANT_ID = 'ingenico_epayments/settings/merchant_id';
     const CONFIG_INGENICO_FIXED_DESCRIPTOR = 'ingenico_epayments/settings/descriptor';
@@ -66,7 +60,28 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
 
     const CONFIG_INGENICO_CAPTURES_MODE = 'ingenico_epayments/captures/capture_mode';
 
-    const CONFIG_INGENICO_CHECKOUT_INLINE = 'ingenico_epayments/checkout/inline_payments';
+    const CONFIG_INGENICO_CHECKOUT_TYPE = 'ingenico_epayments/checkout/inline_payments';
+    const CONFIG_INGENICO_CHECKOUT_TYPE_HOSTED_CHECKOUT = '0';
+    const CONFIG_INGENICO_CHECKOUT_TYPE_INLINE = '1';
+    const CONFIG_INGENICO_CHECKOUT_TYPE_REDIRECT = '2';
+
+    const CONFIG_INGENICO_HOSTED_CHECKOUT_VARIANT = 'ingenico_epayments/checkout/hosted_checkout_variant';
+    const CONFIG_INGENICO_ACCOUNT_VERIFIED = 'ingenico_epayments/account_verified';
+    const CONFIG_INGENICO_SYSTEM_PREFIX = 'ingenico_epayments/settings/system_prefix';
+
+    /**
+     * @var Mage_Core_Model_Encryption
+     */
+    private $encryptor;
+
+    /**
+     * Netresearch_Epayments_Model_Config constructor.
+     */
+    public function __construct()
+    {
+        $this->encryptor = Mage::getModel('core/encryption');
+    }
+
 
     /**
      * @param int $storeId
@@ -90,7 +105,7 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
      */
     public function getApiKey($storeId = null)
     {
-        return Mage::getStoreConfig(self::CONFIG_INGENICO_API_KEY, $storeId);
+        return Mage::getStoreConfig(self::CONFIG_INGENICO_API_KEY_ID, $storeId);
     }
 
     /**
@@ -98,7 +113,9 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
      */
     public function getApiSecret($storeId = null)
     {
-        return Mage::getStoreConfig(self::CONFIG_INGENICO_API_SECRET, $storeId);
+        return $this->encryptor->decrypt(
+            Mage::getStoreConfig(self::CONFIG_INGENICO_API_SECRET, $storeId)
+        );
     }
 
     /**
@@ -126,12 +143,21 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
     }
 
     /**
-     * @param null|int $storeId
-     * @return bool
+     * @param null $storeId
+     * @return string
      */
-    public function isInlinePaymentsEnabled($storeId = null)
+    public function getCheckoutType($storeId = null)
     {
-        return Mage::getStoreConfig(self::CONFIG_INGENICO_CHECKOUT_INLINE, $storeId);
+        return Mage::getStoreConfig(self::CONFIG_INGENICO_CHECKOUT_TYPE, $storeId);
+    }
+
+    /**
+     * @param null|int $storeId
+     * @return string
+     */
+    public function getHostedCheckoutVariant($storeId = null)
+    {
+        return Mage::getStoreConfig(self::CONFIG_INGENICO_HOSTED_CHECKOUT_VARIANT, $storeId);
     }
 
     /**
@@ -155,7 +181,9 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
      */
     public function getWebhooksSecretKey($storeId = null)
     {
-        return Mage::getStoreConfig(self::CONFIG_INGENICO_WEBHOOKS_SECRET_KEY, $storeId);
+        return $this->encryptor->decrypt(
+            Mage::getStoreConfig(self::CONFIG_INGENICO_WEBHOOKS_SECRET_KEY, $storeId)
+        );
     }
 
     /**
@@ -171,7 +199,9 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
      */
     public function getSecondaryWebhooksSecretKey($storeId = null)
     {
-        return Mage::getStoreConfig(self::CONFIG_INGENICO_WEBHOOKS_SECRET_KEY_SECONDARY, $storeId);
+        return $this->encryptor->decrypt(
+            Mage::getStoreConfig(self::CONFIG_INGENICO_WEBHOOKS_SECRET_KEY_SECONDARY, $storeId)
+        );
     }
 
     /**
@@ -219,6 +249,7 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
         } else {
             $result = Mage::getStoreConfig(self::CONFIG_INGENICO_FRAUD_LEGACY_EMAIL_TEMPLATE, $storeId);
         }
+
         return $result;
     }
     /**
@@ -232,6 +263,7 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
         } else {
             $result = Mage::getStoreConfig(self::CONFIG_INGENICO_UPDATE_LEGACY_EMAIL_TEMPLATE, $storeId);
         }
+
         return $result;
     }
 
@@ -337,5 +369,38 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
     public function getSftpRemotePath($storeId = null)
     {
         return Mage::getStoreConfig(self::CONFIG_INGENICO_SFTP_REMOTE_PATH, $storeId);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAccountVerified()
+    {
+        return Mage::getStoreConfig(self::CONFIG_INGENICO_ACCOUNT_VERIFIED) !== '0';
+    }
+
+    /**
+     * @param int $value
+     */
+    public function setAccountVerified($value)
+    {
+        Mage::getModel('core/config')->saveConfig(self::CONFIG_INGENICO_ACCOUNT_VERIFIED, $value);
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isFullRedirect($storeId = null)
+    {
+        return $this->getCheckoutType($storeId) === self::CONFIG_INGENICO_CHECKOUT_TYPE_REDIRECT;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReferencePrefix()
+    {
+        return (string)Mage::getStoreConfig(self::CONFIG_INGENICO_SYSTEM_PREFIX);
     }
 }

@@ -6,7 +6,9 @@
 namespace Ingenico\Connect\Sdk;
 
 use Ingenico\Connect\Sdk\Merchant\Captures;
+use Ingenico\Connect\Sdk\Merchant\Disputes;
 use Ingenico\Connect\Sdk\Merchant\Hostedcheckouts;
+use Ingenico\Connect\Sdk\Merchant\Hostedmandatemanagements;
 use Ingenico\Connect\Sdk\Merchant\Mandates;
 use Ingenico\Connect\Sdk\Merchant\Payments;
 use Ingenico\Connect\Sdk\Merchant\Payouts;
@@ -17,13 +19,11 @@ use Ingenico\Connect\Sdk\Merchant\Riskassessments;
 use Ingenico\Connect\Sdk\Merchant\Services;
 use Ingenico\Connect\Sdk\Merchant\Sessions;
 use Ingenico\Connect\Sdk\Merchant\Tokens;
-use Ingenico\Connect\Sdk\Resource;
 
 class Merchant extends Resource
 {
     /**
      * Resource /{merchantId}/hostedcheckouts
-     * Create new hosted checkout
      *
      * @return Hostedcheckouts
      */
@@ -33,8 +33,17 @@ class Merchant extends Resource
     }
 
     /**
+     * Resource /{merchantId}/hostedmandatemanagements
+     *
+     * @return Hostedmandatemanagements
+     */
+    public function hostedmandatemanagements()
+    {
+        return new Hostedmandatemanagements($this, $this->context);
+    }
+
+    /**
      * Resource /{merchantId}/payments
-     * Create, cancel and approve payments
      *
      * @return Payments
      */
@@ -45,7 +54,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/captures
-     * Get capture
      *
      * @return Captures
      */
@@ -56,7 +64,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/refunds
-     * Create, cancel and approve refunds
      *
      * @return Refunds
      */
@@ -66,8 +73,17 @@ class Merchant extends Resource
     }
 
     /**
+     * Resource /{merchantId}/disputes
+     *
+     * @return Disputes
+     */
+    public function disputes()
+    {
+        return new Disputes($this, $this->context);
+    }
+
+    /**
      * Resource /{merchantId}/payouts
-     * Create, cancel and approve payouts
      *
      * @return Payouts
      */
@@ -78,7 +94,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/productgroups
-     * Get information about payment product groups
      *
      * @return Productgroups
      */
@@ -89,7 +104,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/products
-     * Get information about payment products
      *
      * @return Products
      */
@@ -100,7 +114,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/riskassessments
-     * Perform risk assessments on your customer data
      *
      * @return Riskassessments
      */
@@ -111,7 +124,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/services
-     * Several services to help you
      *
      * @return Services
      */
@@ -122,7 +134,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/tokens
-     * Create, delete and update tokens
      *
      * @return Tokens
      */
@@ -133,7 +144,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/mandates
-     * Create, get and update mandates
      *
      * @return Mandates
      */
@@ -144,7 +154,6 @@ class Merchant extends Resource
 
     /**
      * Resource /{merchantId}/sessions
-     * Create new Session for Client2Server API calls
      *
      * @return Sessions
      */

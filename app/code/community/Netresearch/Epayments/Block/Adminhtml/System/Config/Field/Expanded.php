@@ -15,6 +15,7 @@ class Netresearch_Epayments_Block_Adminhtml_System_Config_Field_Expanded
         if (isset($originalData['style'])) {
             $element->setStyle($originalData['style']);
         }
+
         return parent::render($element);
     }
 }

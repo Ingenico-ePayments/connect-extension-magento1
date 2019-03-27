@@ -1,21 +1,27 @@
 <?php
 
 use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
-use Netresearch_Epayments_Model_Ingenico_StatusFactory as StatusFactory;
+use Netresearch_Epayments_Model_Ingenico_Status_Resolver as StatusResolver;
 use Netresearch_Epayments_Model_Cron_FetchWxFiles_StatusUpdateResolverInterface as StatusUpdateResolverInterface;
 
+/**
+ * Class Netresearch_Epayments_Model_Cron_FetchWxFiles_StatusUpdateResolver
+ */
 class Netresearch_Epayments_Model_Cron_FetchWxFiles_StatusUpdateResolver implements StatusUpdateResolverInterface
 {
     /**
-     * @var StatusFactory
+     * @var StatusResolver
      */
-    private $statusFactory;
+    private $statusResolver;
+
     /**
      * @var Netresearch_Epayments_Model_Resource_Order_Collection
      */
     private $orderCollection;
 
-    /** @var Netresearch_Epayments_Model_Cron_FetchWxFiles_Logger */
+    /**
+     * @var Netresearch_Epayments_Model_Cron_FetchWxFiles_Logger
+     */
     private $logger;
 
     /**
@@ -23,18 +29,20 @@ class Netresearch_Epayments_Model_Cron_FetchWxFiles_StatusUpdateResolver impleme
      *
      * @param array $args
      */
-    public function __construct($args = array())
+    public function __construct(array $args = array())
     {
-        if (isset($args['statusFactory'])) {
-            $this->statusFactory = $args['statusFactory'];
+        if (isset($args['statusResolver'])) {
+            $this->statusResolver = $args['statusResolver'];
         } else {
-            $this->statusFactory = \Mage::getSingleton('netresearch_epayments/ingenico_statusFactory');
+            $this->statusResolver = \Mage::getSingleton('netresearch_epayments/ingenico_status_resolver');
         }
+
         if (isset($args['orderCollection'])) {
             $this->orderCollection = $args['orderCollection'];
         } else {
             $this->orderCollection = \Mage::getModel('sales/order')->getCollection();
         }
+
         if (isset($args['logger'])) {
             $this->logger = $args['logger'];
         } else {
@@ -44,6 +52,7 @@ class Netresearch_Epayments_Model_Cron_FetchWxFiles_StatusUpdateResolver impleme
 
     /**
      * @param AbstractOrderStatus[] $statusList
+     * @return array
      */
     public function resolveBatch($statusList)
     {
@@ -54,15 +63,16 @@ class Netresearch_Epayments_Model_Cron_FetchWxFiles_StatusUpdateResolver impleme
         foreach ($this->orderCollection->getItems() as $order) {
             try {
                 $ingenicoOrderStatus = $statusList[$order->getIncrementId()];
-                $status = $this->statusFactory->create($ingenicoOrderStatus);
-                $status->apply($order);
+                $this->statusResolver->resolve($order, $ingenicoOrderStatus);
                 $updatedOrders[$order->getEntityId()] = $order->getIncrementId();
             } catch (\Exception $e) {
-                $message = sprintf("Error occured for order %s: %s", $order->getIncrementId(), $e->getMessage());
+                $message = sprintf('Error occured for order %s: %s', $order->getIncrementId(), $e->getMessage());
                 $this->logger->addError($message);
             }
         }
+
         $this->orderCollection->save();
+
         return $updatedOrders;
     }
 }

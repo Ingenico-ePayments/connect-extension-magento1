@@ -6,8 +6,6 @@
 namespace Ingenico\Connect\Sdk\Domain\Definitions;
 
 use Ingenico\Connect\Sdk\DataObject;
-use Ingenico\Connect\Sdk\Domain\Definitions\AirlineFlightLeg;
-use Ingenico\Connect\Sdk\Domain\Definitions\AirlinePassenger;
 use UnexpectedValueException;
 
 /**
@@ -116,6 +114,26 @@ class AirlineData extends DataObject
     public $ticketNumber = null;
 
     /**
+     * @var int
+     */
+    public $totalFare = null;
+
+    /**
+     * @var int
+     */
+    public $totalFee = null;
+
+    /**
+     * @var int
+     */
+    public $totalTaxes = null;
+
+    /**
+     * @var string
+     */
+    public $travelAgencyName = null;
+
+    /**
      * @param object $object
      * @return $this
      * @throws UnexpectedValueException
@@ -196,6 +214,18 @@ class AirlineData extends DataObject
         }
         if (property_exists($object, 'ticketNumber')) {
             $this->ticketNumber = $object->ticketNumber;
+        }
+        if (property_exists($object, 'totalFare')) {
+            $this->totalFare = $object->totalFare;
+        }
+        if (property_exists($object, 'totalFee')) {
+            $this->totalFee = $object->totalFee;
+        }
+        if (property_exists($object, 'totalTaxes')) {
+            $this->totalTaxes = $object->totalTaxes;
+        }
+        if (property_exists($object, 'travelAgencyName')) {
+            $this->travelAgencyName = $object->travelAgencyName;
         }
         return $this;
     }

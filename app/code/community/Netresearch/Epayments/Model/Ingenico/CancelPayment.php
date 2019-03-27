@@ -21,12 +21,18 @@ class Netresearch_Epayments_Model_Ingenico_CancelPayment
     protected $ePaymentsConfig;
 
     /**
+     * @var Netresearch_Epayments_Model_Ingenico_Status_ResolverInterface
+     */
+    protected $statusResolver;
+
+    /**
      * Netresearch_Epayments_Model_Ingenico_CreateHostedCheckout constructor.
      */
     public function __construct()
     {
         $this->ingenicoClient  = Mage::getSingleton('netresearch_epayments/ingenico_client');
         $this->ePaymentsConfig = Mage::getSingleton('netresearch_epayments/config');
+        $this->statusResolver  = Mage::getSingleton('netresearch_epayments/ingenico_status_resolver');
 
         parent::__construct();
     }
@@ -47,6 +53,8 @@ class Netresearch_Epayments_Model_Ingenico_CancelPayment
             ->merchant($this->ePaymentsConfig->getMerchantId($order->getStoreId()))
             ->payments()
             ->cancel($ingenicoPaymentId);
+        $this->statusResolver->resolve($order, $response->payment);
+
         $transaction = $payment->getTransaction($transactionId);
         $transaction->setIsClosed(true);
         $order->addRelatedObject($transaction);

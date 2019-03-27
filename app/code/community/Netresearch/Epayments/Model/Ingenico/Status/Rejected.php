@@ -1,14 +1,21 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_Status_AbstractStatus as AbstractStatus;
+use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use Netresearch_Epayments_Model_Ingenico_Status_HandlerInterface as HandlerInterface;
 
-class Netresearch_Epayments_Model_Ingenico_Status_Rejected extends AbstractStatus
+/**
+ * Class Netresearch_Epayments_Model_Ingenico_Status_Rejected
+ */
+class Netresearch_Epayments_Model_Ingenico_Status_Rejected implements HandlerInterface
 {
     /**
-     * {@inheritDoc}
+     * @param Mage_Sales_Model_Order $order
+     * @param AbstractOrderStatus $ingenicoStatus
      */
-    public function _apply(Mage_Sales_Model_Order $order)
+    public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
     {
-        $order->registerCancellation();
+        $order->registerCancellation(
+            "Order was canceled with status {$ingenicoStatus->status}"
+        );
     }
 }

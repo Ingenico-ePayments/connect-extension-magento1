@@ -11,29 +11,33 @@
 /**
  * Instantiate SDK session via ePayments API.
  */
-$sessionData = $this->getSessionData(); ?>
+try {
+    $sessionData = $this->getSessionData(); ?>
 
-<script type="application/javascript">
-    window.epaymentsController = new InlineController(
-        "<?php echo $sessionData->clientSessionId; ?>",
-        "<?php echo $sessionData->customerId; ?>",
-        "<?php echo $sessionData->assetUrl; ?>",
-        "<?php echo $sessionData->clientApiUrl; ?>",
-        <?php echo $this->getQuote()->getBaseGrandTotal() * 100; ?>,
-        "<?php echo $this->getQuote()->getBaseCurrencyCode(); ?>",
-        "<?php echo $this->getQuote()->getBillingAddress()->getCountryId(); ?>",
-        <?php echo $this->getQuote()->hasRecurringItems() ? 'true' : 'false';?>,
-        "<?php echo $this->getLocale(); ?>",
-        <?php echo json_encode($this->getProductGroupTitles()); ?>
-    );
-    <?php if ($this->isOneStepCheckout()) : ?>
-    document.addEventListener("DOMContentLoaded", function(event) {
+    <script type="application/javascript">
+        window.epaymentsController = new InlineController(
+            "<?php echo $sessionData->clientSessionId; ?>",
+            "<?php echo $sessionData->customerId; ?>",
+            "<?php echo $sessionData->assetUrl; ?>",
+            "<?php echo $sessionData->clientApiUrl; ?>",
+            <?php echo $this->getQuote()->getBaseGrandTotal() * 100; ?>,
+            "<?php echo $this->getQuote()->getBaseCurrencyCode(); ?>",
+            "<?php echo $this->getQuote()->getBillingAddress()->getCountryId(); ?>",
+            <?php echo $this->getQuote()->hasRecurringItems() ? 'true' : 'false';?>,
+            "<?php echo $this->getLocale(); ?>",
+            <?php echo json_encode($this->getProductGroupTitles()); ?>
+        );
+        <?php if ($this->isOneStepCheckout()) : ?>
+        document.addEventListener("DOMContentLoaded", function (event) {
+            window.epaymentsController.execute();
+        });
+        <?php endif; ?>
         window.epaymentsController.execute();
-    });
-    <?php else : ?>
-    window.epaymentsController.execute();
-    <?php endif; ?>
-</script>
+    </script>
+<?php } catch (Exception $exception) {
+    echo '<p class="error">' . $this->__('This payment method is not available at the moment.') . '</p>';
+} ?>
+
 
 <ul class="form-list gc-list"
     id="payment_form_<?php echo $this->getMethodCode() ?>"

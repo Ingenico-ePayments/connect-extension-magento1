@@ -5,15 +5,12 @@
  */
 namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\CashPaymentMethodSpecificInputBase;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\CashPaymentProduct1503SpecificInput;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\CashPaymentProduct1504SpecificInput;
 use UnexpectedValueException;
 
 /**
  * @package Ingenico\Connect\Sdk\Domain\Payment\Definitions
  */
-class CashPaymentMethodSpecificInput extends CashPaymentMethodSpecificInputBase
+class CashPaymentMethodSpecificInput extends AbstractCashPaymentMethodSpecificInput
 {
     /**
      * @var CashPaymentProduct1503SpecificInput

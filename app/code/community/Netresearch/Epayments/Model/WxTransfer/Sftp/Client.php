@@ -92,6 +92,7 @@ class Netresearch_Epayments_Model_WxTransfer_Sftp_Client implements ClientInterf
                 "Could not decompress compressed WX file {$fileName}"
             );
         }
+
         return $gzuncompress;
     }
 }

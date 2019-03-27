@@ -1,36 +1,41 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_Status_AbstractStatus as AbstractStatus;
+use Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use Netresearch_Epayments_Model_Ingenico_Status_HandlerInterface as HandlerInterface;
 
-class Netresearch_Epayments_Model_Ingenico_Status_PendingFraudApproval extends AbstractStatus
+/**
+ * Class Netresearch_Epayments_Model_Ingenico_Status_PendingFraudApproval
+ */
+class Netresearch_Epayments_Model_Ingenico_Status_PendingFraudApproval implements HandlerInterface
 {
     /**
-     * Netresearch_Epayments_Model_Ingenico_Status_PendingFraudApproval constructor.
-     *
-     * @param array $args
+     * @var Netresearch_Epayments_Model_Order_FraudManager
      */
-    public function __construct(array $args = array())
-    {
-        parent::__construct($args);
-        /** @var Netresearch_Epayments_Model_Order_FraudManager $orderEmailManager */
-        $orderEmailManager = Mage::getModel('netresearch_epayments/order_fraudManager');
-        $this->orderEMailManager = $orderEmailManager;
-    }
-
+    protected $orderEMailManager;
 
     /**
-     * {@inheritDoc}
+     * Netresearch_Epayments_Model_Ingenico_Status_PendingFraudApproval constructor.
      */
-    public function _apply(Mage_Sales_Model_Order $order)
+    public function __construct()
+    {
+        $this->orderEMailManager = Mage::getModel('netresearch_epayments/order_fraudManager');
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     * @param AbstractOrderStatus $ingenicoStatus
+     */
+    public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
     {
         /** @var Mage_Sales_Model_Order_Payment $payment */
         $payment = $order->getPayment();
         $payment->setIsFraudDetected(true);
         $payment->setIsTransactionPending(true);
-        $amount = $this->ingenicoOrderStatus->paymentOutput->amountOfMoney->amount;
+        $amount = $ingenicoStatus->paymentOutput->amountOfMoney->amount;
         $amount /= 100;
         $payment->registerAuthorizationNotification($amount);
 
-        $this->orderEMailManager->process($order, $this->getStatus());
+        $this->orderEMailManager->process($order, $ingenicoStatus->status);
     }
+
 }

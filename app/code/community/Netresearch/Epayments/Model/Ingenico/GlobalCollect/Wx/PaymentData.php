@@ -89,6 +89,7 @@ class Netresearch_Epayments_Model_Ingenico_GlobalCollect_Wx_PaymentData
                 $instance->$key = $value;
             }
         }
+
         return $instance;
     }
 
@@ -106,6 +107,7 @@ class Netresearch_Epayments_Model_Ingenico_GlobalCollect_Wx_PaymentData
                 $instance->$property = $item->nodeValue;
             }
         }
+
         return $instance;
     }
 

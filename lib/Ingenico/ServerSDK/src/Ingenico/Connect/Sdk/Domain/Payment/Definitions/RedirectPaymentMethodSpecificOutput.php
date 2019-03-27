@@ -7,9 +7,6 @@ namespace Ingenico\Connect\Sdk\Domain\Payment\Definitions;
 
 use Ingenico\Connect\Sdk\Domain\Definitions\BankAccountIban;
 use Ingenico\Connect\Sdk\Domain\Definitions\FraudResults;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\AbstractPaymentMethodSpecificOutput;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\PaymentProduct836SpecificOutput;
-use Ingenico\Connect\Sdk\Domain\Payment\Definitions\PaymentProduct840SpecificOutput;
 use UnexpectedValueException;
 
 /**
@@ -28,6 +25,11 @@ class RedirectPaymentMethodSpecificOutput extends AbstractPaymentMethodSpecificO
     public $fraudResults = null;
 
     /**
+     * @var PaymentProduct3201SpecificOutput
+     */
+    public $paymentProduct3201SpecificOutput = null;
+
+    /**
      * @var PaymentProduct836SpecificOutput
      */
     public $paymentProduct836SpecificOutput = null;
@@ -36,6 +38,11 @@ class RedirectPaymentMethodSpecificOutput extends AbstractPaymentMethodSpecificO
      * @var PaymentProduct840SpecificOutput
      */
     public $paymentProduct840SpecificOutput = null;
+
+    /**
+     * @var string
+     */
+    public $token = null;
 
     /**
      * @param object $object
@@ -59,6 +66,13 @@ class RedirectPaymentMethodSpecificOutput extends AbstractPaymentMethodSpecificO
             $value = new FraudResults();
             $this->fraudResults = $value->fromObject($object->fraudResults);
         }
+        if (property_exists($object, 'paymentProduct3201SpecificOutput')) {
+            if (!is_object($object->paymentProduct3201SpecificOutput)) {
+                throw new UnexpectedValueException('value \'' . print_r($object->paymentProduct3201SpecificOutput, true) . '\' is not an object');
+            }
+            $value = new PaymentProduct3201SpecificOutput();
+            $this->paymentProduct3201SpecificOutput = $value->fromObject($object->paymentProduct3201SpecificOutput);
+        }
         if (property_exists($object, 'paymentProduct836SpecificOutput')) {
             if (!is_object($object->paymentProduct836SpecificOutput)) {
                 throw new UnexpectedValueException('value \'' . print_r($object->paymentProduct836SpecificOutput, true) . '\' is not an object');
@@ -72,6 +86,9 @@ class RedirectPaymentMethodSpecificOutput extends AbstractPaymentMethodSpecificO
             }
             $value = new PaymentProduct840SpecificOutput();
             $this->paymentProduct840SpecificOutput = $value->fromObject($object->paymentProduct840SpecificOutput);
+        }
+        if (property_exists($object, 'token')) {
+            $this->token = $object->token;
         }
         return $this;
     }

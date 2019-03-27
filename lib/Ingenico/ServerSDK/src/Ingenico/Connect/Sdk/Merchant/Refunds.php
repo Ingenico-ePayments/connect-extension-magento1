@@ -22,13 +22,11 @@ use Ingenico\Connect\Sdk\ValidationException;
 
 /**
  * Refunds client.
- * Create, cancel and approve refunds
  */
 class Refunds extends Resource
 {
     /**
-     * Resource /{merchantId}/refunds
-     * Find refunds
+     * Resource /{merchantId}/refunds - Find refunds
      *
      * @param FindRefundsParams $query
      * @param CallContext $callContext
@@ -46,7 +44,7 @@ class Refunds extends Resource
     public function find($query, CallContext $callContext = null)
     {
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Refund\FindRefundsResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Refund\FindRefundsResponse';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/refunds'),
@@ -57,8 +55,7 @@ class Refunds extends Resource
     }
 
     /**
-     * Resource /{merchantId}/refunds/{refundId}
-     * Get refund
+     * Resource /{merchantId}/refunds/{refundId} - Get refund
      *
      * @param string $refundId
      * @param CallContext $callContext
@@ -77,7 +74,7 @@ class Refunds extends Resource
     {
         $this->context['refundId'] = $refundId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(200, '\Ingenico\Connect\Sdk\Domain\Refund\RefundResponse');
+        $responseClassMap->defaultSuccessResponseClassName = '\Ingenico\Connect\Sdk\Domain\Refund\RefundResponse';
         return $this->getCommunicator()->get(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/refunds/{refundId}'),
@@ -88,8 +85,7 @@ class Refunds extends Resource
     }
 
     /**
-     * Resource /{merchantId}/refunds/{refundId}/approve
-     * Approve refund
+     * Resource /{merchantId}/refunds/{refundId}/approve - Approve refund
      *
      * @param string $refundId
      * @param ApproveRefundRequest $body
@@ -109,7 +105,6 @@ class Refunds extends Resource
     {
         $this->context['refundId'] = $refundId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(204, '');
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/refunds/{refundId}/approve'),
@@ -121,8 +116,7 @@ class Refunds extends Resource
     }
 
     /**
-     * Resource /{merchantId}/refunds/{refundId}/cancel
-     * Cancel refund
+     * Resource /{merchantId}/refunds/{refundId}/cancel - Cancel refund
      *
      * @param string $refundId
      * @param CallContext $callContext
@@ -141,7 +135,6 @@ class Refunds extends Resource
     {
         $this->context['refundId'] = $refundId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(204, '');
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/refunds/{refundId}/cancel'),
@@ -153,8 +146,7 @@ class Refunds extends Resource
     }
 
     /**
-     * Resource /{merchantId}/refunds/{refundId}/cancelapproval
-     * Undo approve refund
+     * Resource /{merchantId}/refunds/{refundId}/cancelapproval - Undo approve refund
      *
      * @param string $refundId
      * @param CallContext $callContext
@@ -173,7 +165,6 @@ class Refunds extends Resource
     {
         $this->context['refundId'] = $refundId;
         $responseClassMap = new ResponseClassMap();
-        $responseClassMap->addResponseClassName(204, '');
         return $this->getCommunicator()->post(
             $responseClassMap,
             $this->instantiateUri('/{apiVersion}/{merchantId}/refunds/{refundId}/cancelapproval'),

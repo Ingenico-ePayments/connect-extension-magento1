@@ -16,7 +16,7 @@ class Netresearch_Epayments_Model_OrderUpdate_HistoryManager
         Mage_Sales_Model_Order $order,
         array $data,
         $historyType
-    ) {
+    ) { 
         /** @var string $dbHistory */
         $dbHistory = $this->getHistory($order, $historyType);
 
@@ -25,6 +25,7 @@ class Netresearch_Epayments_Model_OrderUpdate_HistoryManager
         if (is_array($columnData)) {
             $history = $columnData;
         }
+
         $history[] = $data;
 
         // save data
@@ -41,7 +42,7 @@ class Netresearch_Epayments_Model_OrderUpdate_HistoryManager
     private function getHistory(
         Mage_Sales_Model_Order $order,
         $type
-    ) {
+    ) { 
         $data = false;
         switch ($type) {
             case self::TYPE_API:
@@ -66,7 +67,7 @@ class Netresearch_Epayments_Model_OrderUpdate_HistoryManager
         Mage_Sales_Model_Order $order,
         $type,
         array $data
-    ) {
+    ) { 
         $data = serialize($data);
         switch ($type) {
             case self::TYPE_API:

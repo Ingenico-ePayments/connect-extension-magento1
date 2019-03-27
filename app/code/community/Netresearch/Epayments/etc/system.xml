@@ -59,6 +59,7 @@
                             <label>API Endpoint</label>
                             <tooltip>You will receive this information from Ingenico.</tooltip>
                             <frontend_type>text</frontend_type>
+                            <backend_model>netresearch_epayments/adminhtml_system_config_backend_validator_apiEndpoint</backend_model>
                             <sort_order>20</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
@@ -75,7 +76,7 @@
                             <show_in_store>0</show_in_store>
                         </api_endpoint_secondary>
                         <api_key translate="label">
-                            <label>API Key</label>
+                            <label>API Key ID</label>
                             <tooltip>You will receive this information from Ingenico.</tooltip>
                             <frontend_type>text</frontend_type>
                             <sort_order>28</sort_order>
@@ -86,7 +87,8 @@
                         <api_secret translate="label">
                             <label>API Secret</label>
                             <tooltip>You will receive this information from Ingenico.</tooltip>
-                            <frontend_type>text</frontend_type>
+                            <frontend_type>obscure</frontend_type>
+                            <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
                             <sort_order>30</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
@@ -119,6 +121,16 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </hosted_checkout_subdomain>
+                        <system_prefix translate="label">
+                            <label>System Identifier Prefix</label>
+                            <tooltip><![CDATA[If you have multiple systems linked to one Ingenico account you might want to set a unique system identifier, so that webhook events can be matched to the corresponding shop instance.]]> </tooltip>
+                            <comment><![CDATA[The entered text will be added as prefix to the order increment id and sent to Ingenico as merchantReference paremeter.]]></comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>55</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </system_prefix>
                         <log_all_requests translate="label">
                             <label>Log All Requests</label>
                             <tooltip>Select if you want to log the communication between Ingenico and your shop.</tooltip>
@@ -142,18 +154,28 @@
                     <comment>Configuration of the Magento checkout</comment>
                     <fields>
                         <inline_payments translate="label">
-                            <label>Enable inline payments</label>
+                            <label>Checkout Type</label>
                             <comment>
-                                Note that the use of inline payments requires your Magento store
-                                to be PCI compliant on level SAQ-A EP.
+                                Using inline payments requires your Magento store to be PCI compliant on level SAQ-A EP.
                             </comment>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <frontend_type>radios</frontend_type>
+                            <source_model>Netresearch_Epayments_Model_Adminhtml_System_Config_Source_CheckoutType</source_model>
                             <sort_order>10</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </inline_payments>
+                        <hosted_checkout_variant translate="label">
+                            <label>Hosted Checkout Variant</label>
+                            <comment>
+                                Enter the ID of the variant (template) to use for the Hosted Checkout, e.g. "101".
+                            </comment>
+                            <tooltip>Numeric ID of Hosted Checkout template.</tooltip>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </hosted_checkout_variant>
                     </fields>
                 </checkout>
                 <captures translate="label" module="netresearch_epayments">
@@ -167,7 +189,8 @@
                     <fields>
                         <capture_mode translate="label">
                             <label>Capture mode</label>
-                            <tooltip>Select the capture operation mode. Default is 'Delayed Settlement'</tooltip>
+                            <tooltip>Select the capture operation mode. Default is 'Delayed Settlement'.</tooltip>
+                            <comment>If the current payment product does not support 'Delayed settlement', a direct capture will be performed.</comment>
                             <frontend_type>select</frontend_type>
                             <source_model>Netresearch_Epayments_Model_Adminhtml_System_Config_Source_CaptureMode</source_model>
                             <sort_order>10</sort_order>
@@ -199,7 +222,8 @@
                         <secret_key>
                             <label>Secret Key</label>
                             <tooltip>You will receive this information from Ingenico.</tooltip>
-                            <frontend_type>text</frontend_type>
+                            <frontend_type>obscure</frontend_type>
+                            <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
                             <sort_order>2</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
@@ -219,7 +243,8 @@
                             <label>Secret Key (Secondary)</label>
                             <tooltip>You will receive this information from Ingenico.</tooltip>
                             <comment><![CDATA[Fallback if primary key fails.]]></comment>
-                            <frontend_type>text</frontend_type>
+                            <frontend_type>obscure</frontend_type>
+                            <backend_model>adminhtml/system_config_backend_encrypted</backend_model>
                             <sort_order>4</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
@@ -658,79 +683,6 @@
                         </slow_3rd_party>
                     </fields>
                 </email_settings>
-                <sftp_settings translate="label" module="netresearch_epayments">
-                    <label>WX File SFT Settings</label>
-                    <comment><![CDATA[Configuration for retrieving the <em>.wx</em> files from Ingenico.]]></comment>
-                    <sort_order>30</sort_order>
-                    <show_in_default>1</show_in_default>
-                    <show_in_website>1</show_in_website>
-                    <show_in_store>1</show_in_store>
-                    <fields>
-                        <active translate="label">
-                            <label>Active</label>
-                            <comment><![CDATA[Configure if automatic WX file polling is active.]]></comment>
-                            <tooltip><![CDATA[Only needed for GlobalCollect accounts]]></tooltip>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <frontend_type>select</frontend_type>
-                            <sort_order>10</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </active>
-                        <sftp_host translate="label">
-                            <label>Host</label>
-                            <tooltip>You will receive this information from Ingenico.</tooltip>
-                            <comment><![CDATA[SFTP hostname]]></comment>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>10</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <active>1</active>
-                            </depends>
-                        </sftp_host>
-                        <sftp_username translate="label">
-                            <label>Username</label>
-                            <tooltip>You will receive this information from Ingenico.</tooltip>
-                            <comment><![CDATA[SFTP username for login]]></comment>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>30</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <active>1</active>
-                            </depends>
-                        </sftp_username>
-                        <sftp_password translate="label">
-                            <label>Password</label>
-                            <tooltip>You will receive this information from Ingenico.</tooltip>
-                            <comment><![CDATA[SFTP password for login]]></comment>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>40</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <active>1</active>
-                            </depends>
-                        </sftp_password>
-                        <sftp_remote_path translate="label">
-                            <label>Remote path</label>
-                            <tooltip>You will receive this information from Ingenico.</tooltip>
-                            <comment><![CDATA[Path on the remote SFTP server]]></comment>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>50</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <depends>
-                                <active>1</active>
-                            </depends>
-                        </sftp_remote_path>
-                    </fields>
-                </sftp_settings>
             </groups>
         </ingenico_epayments>
     </sections>

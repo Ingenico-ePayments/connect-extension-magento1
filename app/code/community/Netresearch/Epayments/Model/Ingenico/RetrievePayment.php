@@ -5,6 +5,7 @@ use \Ingenico\Connect\Sdk\Merchant;
 use \Ingenico\Connect\Sdk\Domain\Payment\Definitions\Payment as IngenicoPayment;
 use \Ingenico\Connect\Sdk\Domain\Refund\Definitions\RefundResult as IngenicoRefund;
 use Netresearch_Epayments_Model_Ingenico_ActionInterface as ActionInterface;
+use Netresearch_Epayments_Model_Method_HostedCheckout as HostedCheckout;
 
 /**
  * Class Netresearch_Epayments_Model_Ingenico_RetrievePayment
@@ -29,9 +30,14 @@ class Netresearch_Epayments_Model_Ingenico_RetrievePayment implements ActionInte
     protected $ePaymentsConfig;
 
     /**
-     * @var Netresearch_Epayments_Model_Ingenico_StatusFactory $statusFactory
+     * @var Netresearch_Epayments_Model_Ingenico_Status_ResolverInterface $statusResolver
      */
-    protected $statusFactory;
+    protected $statusResolver;
+
+    /**
+     * @var Netresearch_Epayments_Helper_Data
+     */
+    protected $helper;
 
     /**
      * Netresearch_Epayments_Model_Ingenico_RetrievePayment constructor.
@@ -41,9 +47,9 @@ class Netresearch_Epayments_Model_Ingenico_RetrievePayment implements ActionInte
         $this->statusResponseManager = Mage::getModel('netresearch_epayments/statusResponseManager');
         $this->ePaymentsConfig = Mage::getModel('netresearch_epayments/config');
         $this->ingenicoClient = Mage::getModel('netresearch_epayments/ingenico_client');
-        $this->statusFactory = Mage::getModel('netresearch_epayments/ingenico_statusFactory');
+        $this->statusResolver = Mage::getModel('netresearch_epayments/ingenico_status_resolver');
+        $this->helper = Mage::helper('netresearch_epayments');
     }
-
 
     /**
      * Will retrieve updates for all transactions/objects related to the order (payment, capture, refund)
@@ -53,11 +59,12 @@ class Netresearch_Epayments_Model_Ingenico_RetrievePayment implements ActionInte
      *              false: status has not changed
      * @throws Exception
      * @throws Mage_Core_Exception
+     * @throws InvalidArgumentException
      */
     public function process(Mage_Sales_Model_Order $order)
     {
         $orderWasUpdated = false;
-        $isIngenicoOrder = Mage::helper('netresearch_epayments')->isIngenicoOrder($order);
+        $isIngenicoOrder = $this->helper->isIngenicoOrder($order);
 
         if (!$isIngenicoOrder) {
             throw new InvalidArgumentException('This order was not placed via Ingenico ePayments');
@@ -66,12 +73,21 @@ class Netresearch_Epayments_Model_Ingenico_RetrievePayment implements ActionInte
         /** @var Mage_Sales_Model_Order_Payment $payment */
         $payment = $order->getPayment();
 
+        $ingenicoPaymentId = $payment->getAdditionalInformation(HostedCheckout::PAYMENT_ID_KEY);
+        if (!$ingenicoPaymentId) {
+            try {
+                $orderWasUpdated = $this->updateHostedCheckoutStatus($order);
+            } catch (Exception $exception) {
+                Mage::throwException(
+                    $this->helper->__('Order is not linked with Ingenico ePayments orders.')
+                );
+            }
+        }
+
         $orderTransactions = Mage::getModel('sales/order_payment_transaction')->getCollection();
         $orderTransactions->addPaymentIdFilter($payment);
         /** @var Mage_Sales_Model_Order_Payment_Transaction $transaction */
         foreach ($orderTransactions as $transaction) {
-
-
             $responseObject = $this->statusResponseManager->get($payment, $transaction->getTxnId());
             /** @var \Ingenico\Connect\Sdk\Merchant $merchant */
             $merchant = $this->ingenicoClient
@@ -81,9 +97,9 @@ class Netresearch_Epayments_Model_Ingenico_RetrievePayment implements ActionInte
                 $merchant,
                 $responseObject
             );
-            if ($update->status != $responseObject->status) {
-                $status = $this->statusFactory->create($update);
-                $status->apply($order);
+            if ($update->status !== $responseObject->status) {
+                $this->statusResolver->resolve($order, $update);
+
                 // get updated transaction object
                 $transaction = $payment->getTransaction($transaction->getTxnId());
                 $order->addRelatedObject($transaction);
@@ -108,10 +124,7 @@ class Netresearch_Epayments_Model_Ingenico_RetrievePayment implements ActionInte
      * @param AbstractOrderStatus $data
      * @return AbstractOrderStatus|IngenicoPayment|IngenicoRefund
      */
-    protected function pullUpdateFor(
-        Merchant $merchant,
-        AbstractOrderStatus $data
-    )
+    protected function pullUpdateFor(Merchant $merchant, AbstractOrderStatus $data)
     {
         $response = null;
         if ($data instanceof \Ingenico\Connect\Sdk\Domain\Refund\Definitions\RefundResult) {
@@ -123,5 +136,20 @@ class Netresearch_Epayments_Model_Ingenico_RetrievePayment implements ActionInte
         }
 
         return $response;
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     * @return bool
+     */
+    protected function updateHostedCheckoutStatus(Mage_Sales_Model_Order $order)
+    {
+        $hostedCheckoutId = $order->getPayment()->getAdditionalInformation(HostedCheckout::HOSTED_CHECKOUT_ID_KEY);
+        /** @var Netresearch_Epayments_Model_Ingenico_GetHostedCheckoutStatus $status */
+        $status = Mage::getModel('netresearch_epayments/ingenico_getHostedCheckoutStatus');
+        $order = $status->process($hostedCheckoutId);
+        $ingenicoPaymentId = $order->getPayment()->getAdditionalInformation(HostedCheckout::PAYMENT_ID_KEY);
+
+        return $ingenicoPaymentId !== null;
     }
 }

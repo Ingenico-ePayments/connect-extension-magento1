@@ -18,22 +18,46 @@ var InlinePaymentDataProcessor = Class.create(GenericPaymentDataProcessor, {
      */
     initialize: function(sdkClient, validator) {
         this.sdkClient = sdkClient;
-        this.payment = window.payment;
         this.validator = validator;
-        this.payment.save = this.payment.save.wrap(this.save.bind(this));
+        this.initWrappers();
+    },
+
+    initWrappers: function() {
+        window.payment.save = window.payment.save.wrap(
+            this.save.bind(this)
+        );
+        Validation.prototype.validate = Validation.prototype.validate.wrap(
+            this.validate.bind(this)
+        );
     },
 
     /**
+     * Override window.payment save method to prepare payment data.
+     *
      * @method
-     * @protected
-     * @param $super
+     * @param {function} _super
      */
-    save: async function($super) {
+    save: async function(_super) {
         if (this.paymentProduct && this.validateFieldInputs()) {
             await this.assemblePaymentInput();
             this.disableFieldInputs();
         }
-        $super();
+        _super();
+    },
+
+    /**
+     * Override Validation.prototype.validate to re-enable fields on failed validation.
+     *
+     * @method
+     * @param {function} _super
+     */
+    validate: function(_super) {
+        var isValid = _super();
+        if (!isValid) {
+            this.enableFieldInputs();
+        }
+
+        return isValid;
     },
 
     /**
@@ -65,6 +89,13 @@ var InlinePaymentDataProcessor = Class.create(GenericPaymentDataProcessor, {
         var inputs = document.querySelectorAll('.ingenico_field input, .ingenico_field select');
         for (var input of inputs) {
             input.disabled = true;
+        }
+    },
+
+    enableFieldInputs: function() {
+        var inputs = document.querySelectorAll('.ingenico_field input, .ingenico_field select');
+        for (var input of inputs) {
+            input.disabled = false;
         }
     },
 

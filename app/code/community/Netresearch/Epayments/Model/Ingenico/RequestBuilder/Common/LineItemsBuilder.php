@@ -29,6 +29,11 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_LineItemsBuilde
         $orderItems = $order->getAllVisibleItems();
 
         foreach ($orderItems as $item) {
+            if ($item->getParentItem()) {
+                // skip item if it is only a modifier
+                continue;
+            }
+
             $lineItem = new \Ingenico\Connect\Sdk\Domain\Payment\Definitions\LineItem();
 
             $itemAmountOfMoney = new \Ingenico\Connect\Sdk\Domain\Definitions\AmountOfMoney();
@@ -57,12 +62,14 @@ class Netresearch_Epayments_Model_Ingenico_RequestBuilder_Common_LineItemsBuilde
 
             $lineItems[] = $lineItem;
         }
+
         /**
          * Add shipping amount as fake line item
          */
         if ($order->getBaseShippingAmount() != 0) {
             $lineItems[] = $this->getShippingItem($order);
         }
+
         /**
          * Add discounts as fake line item
          */

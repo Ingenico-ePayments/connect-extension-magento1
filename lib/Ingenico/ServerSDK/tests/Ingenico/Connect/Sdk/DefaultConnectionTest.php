@@ -27,14 +27,14 @@ class DefaultConnectionTest extends TestCase
 
     public function testTestConnection()
     {
-        $merchantId = '20000';
+        $merchantId = $this->getMerchantId();
         $relativeUriPath = '/' . Client::API_VERSION . '/' . $merchantId  . '/services/testconnection';
         $communicatorConfiguration = $this->getCommunicatorConfiguration();
         $requestHeaderGenerator = new RequestHeaderGenerator($communicatorConfiguration, 'GET', $relativeUriPath);
         $requestHeaders = $requestHeaderGenerator->generateRequestHeaders();
         $response = $this->connection->get($this->getApiEndpoint() . $relativeUriPath, $requestHeaders);
         $this->assertEquals(200, $response->getHttpStatusCode());
-        $this->assertEquals('application/json', $response->getHeaderValue('Content-Type'));
+        $this->assertStringStartsWith('application/json', $response->getHeaderValue('Content-Type'));
         $this->assertEquals(array('result' => 'OK'), json_decode($response->getBody(), true));
     }
 

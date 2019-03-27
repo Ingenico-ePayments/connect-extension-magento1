@@ -1,37 +1,22 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_RequestBuilder_SpecificInput_AbstractMethodDecorator as
-    AbstractMethodDecorator;
-use Netresearch_Epayments_Model_Ingenico_RequestBuilder_AbstractRequestBuilder as AbstractRequestBuilder;
+use Ingenico\Connect\Sdk\DataObject;
 use Netresearch_Epayments_Model_Method_HostedCheckout as HostedCheckout;
+use Netresearch_Epayments_Model_Ingenico_RequestBuilder_DecoratorInterface as DecoratorInterface;
+
 /**
  * Class Netresearch_Epayments_Model_Ingenico_RequestBuilder_SpecificInput_EInvoiceDecorator
  */
-class Netresearch_Epayments_Model_Ingenico_RequestBuilder_SpecificInput_EInvoiceDecorator extends
-    AbstractMethodDecorator
+class Netresearch_Epayments_Model_Ingenico_RequestBuilder_SpecificInput_EInvoiceDecorator implements DecoratorInterface
 {
     /**
      * @inheritdoc
      */
-    public function decorate($request, Mage_Sales_Model_Order $order)
+    public function decorate(DataObject $request, Mage_Sales_Model_Order $order)
     {
-        $input = EInvoicePaymentMethodSpecificInput();
-        $input->paymentProductId = $this->getProductId($order);
-        $input->returnUrl = Mage::getUrl(AbstractRequestBuilder::HOSTED_CHECKOUT_RETURN_URL);
+        $input = new \Ingenico\Connect\Sdk\Domain\Payment\Definitions\EInvoicePaymentMethodSpecificInput();
+        $input->paymentProductId = $order->getPayment()->getAdditionalInformation(HostedCheckout::PRODUCT_ID_KEY);
 
-        $tokenize = $order->getPayment()->getAdditionalInformation(
-            HostedCheckout::PRODUCT_TOKENIZE_KEY
-        );
-        $input->tokenize = $tokenize;
-
-        // Retrieve capture mode from config
-        $captureMode = Mage::getStoreConfig(
-            Netresearch_Epayments_Model_Config::CONFIG_INGENICO_CAPTURES_MODE,
-            Mage::app()->getStore()->getId()
-        );
-        $input->requiresApproval = (
-            $captureMode === Mage_Payment_Model_Method_Abstract::ACTION_AUTHORIZE
-        );
         $request->eInvoicePaymentMethodSpecificInput = $input;
 
         return $request;

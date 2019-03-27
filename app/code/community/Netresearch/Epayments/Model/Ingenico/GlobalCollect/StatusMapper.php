@@ -147,6 +147,7 @@ class Netresearch_Epayments_Model_Ingenico_GlobalCollect_StatusMapper
         if (!array_key_exists($gcPaymentGroupId, self::$statusMap)) {
             \Mage::throwException("Payment group id not supported: {$gcPaymentGroupId}");
         }
+
         $groupStatuses = self::$statusMap[$gcPaymentGroupId];
         $availableStatuses = array_filter(
             $groupStatuses,

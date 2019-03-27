@@ -1,30 +1,41 @@
 <?php
 
+use Netresearch_Epayments_Model_Ingenico_Webhooks_EventDataResolverInterface as EventDataResolverInterface;
+
+/**
+ * Class Netresearch_Epayments_WebhooksController
+ */
 class Netresearch_Epayments_WebhooksController extends Mage_Core_Controller_Front_Action
 {
     /**
      * Handles payment.* events
+     *
+     * @throws Zend_Controller_Request_Exception
      */
     public function paymentAction()
     {
         if ($this->checkVerification()) {
             return;
         }
+
         /** @var Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver $eventDataResolver */
-        $eventDataResolver = Mage::getModel('netresearch_epayments/ingenico_webhooks_paymentEventDataResolver');
+        $eventDataResolver = Mage::getSingleton('netresearch_epayments/ingenico_webhooks_paymentEventDataResolver');
         $this->handle($eventDataResolver);
     }
 
     /**
      * Handles refund.* events
+     *
+     * @throws Zend_Controller_Request_Exception
      */
     public function refundAction()
     {
         if ($this->checkVerification()) {
             return;
         }
+
         /** @var Netresearch_Epayments_Model_Ingenico_Webhooks_RefundEventDataResolver $eventDataResolver */
-        $eventDataResolver = Mage::getModel('netresearch_epayments/ingenico_webhooks_refundEventDataResolver');
+        $eventDataResolver = Mage::getSingleton('netresearch_epayments/ingenico_webhooks_refundEventDataResolver');
         $this->handle($eventDataResolver);
     }
 
@@ -34,7 +45,8 @@ class Netresearch_Epayments_WebhooksController extends Mage_Core_Controller_Fron
      */
     protected function _buildWebhooksRequestContext()
     {
-        return Mage::getModel(
+        /** @var Netresearch_Epayments_Model_Ingenico_Webhooks_RequestContext $context */
+        $context = Mage::getModel(
             'netresearch_epayments/ingenico_webhooks_requestContext',
             array(
                 'headers' => array(
@@ -44,38 +56,46 @@ class Netresearch_Epayments_WebhooksController extends Mage_Core_Controller_Fron
                 'body' => $this->getRequest()->getRawBody()
             )
         );
+
+        return $context;
     }
 
     /**
      * @param Netresearch_Epayments_Model_Ingenico_Webhooks_EventDataResolverInterface $eventDataResolver
-     *
-     * @throws Zend_Controller_Request_Exception
      */
-    protected function handle(
-        Netresearch_Epayments_Model_Ingenico_Webhooks_EventDataResolverInterface $eventDataResolver
-    ) {
+    protected function handle(EventDataResolverInterface $eventDataResolver)
+    {
         /** @var Netresearch_Epayments_Model_Ingenico_Webhooks $webhooks */
         $webhooks = Mage::getModel('netresearch_epayments/ingenico_webhooks');
-        $requestContext = $this->_buildWebhooksRequestContext();
-        $webhooks->handle(
-            $requestContext,
-            $eventDataResolver
-        );
+        try {
+            $requestContext = $this->_buildWebhooksRequestContext();
+            $webhooks->handle(
+                $requestContext,
+                $eventDataResolver
+            );
+        } catch (\Exception $exception) {
+            Mage::logException($exception);
+        }
     }
 
     /**
      * Checks the headers of the request for a special endpoint verification
      *
-     * @return Zend_Controller_Response_Abstract
+     * @return bool
+     * @throws Zend_Controller_Request_Exception
      */
     protected function checkVerification()
     {
         $verificationString = $this->getRequest()->getHeader('X-GCS-Webhooks-Endpoint-Verification');
         if ($verificationString) {
             $this->getResponse()->setHeader('Content-Type', 'text/plain');
-            return $this->getResponse()->setBody(
+            $this->getResponse()->setBody(
                 $verificationString
             );
+
+            return true;
         }
+
+        return false;
     }
 }

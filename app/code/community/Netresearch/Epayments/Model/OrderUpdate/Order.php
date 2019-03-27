@@ -43,6 +43,7 @@ class Netresearch_Epayments_Model_OrderUpdate_Order
 
             return;
         }
+
         if (!$paymentId) {
             Mage::log("skipped, no paymentId", Zend_Log::INFO, 'order_update.log');
 
@@ -57,6 +58,7 @@ class Netresearch_Epayments_Model_OrderUpdate_Order
             } else {
                 $message = "No update available";
             }
+
             Mage::log($message, Zend_Log::INFO, 'order_update.log');
         } catch (Exception $e) {
             Mage::log($e->getMessage(), Zend_Log::ERR, 'order_update.log');

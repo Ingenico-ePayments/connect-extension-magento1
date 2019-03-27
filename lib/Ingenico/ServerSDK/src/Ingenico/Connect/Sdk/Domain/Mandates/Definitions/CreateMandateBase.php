@@ -6,7 +6,6 @@
 namespace Ingenico\Connect\Sdk\Domain\Mandates\Definitions;
 
 use Ingenico\Connect\Sdk\DataObject;
-use Ingenico\Connect\Sdk\Domain\Mandates\Definitions\MandateCustomer;
 use UnexpectedValueException;
 
 /**
@@ -45,6 +44,11 @@ class CreateMandateBase extends DataObject
     public $signatureType = null;
 
     /**
+     * @var string
+     */
+    public $uniqueMandateReference = null;
+
+    /**
      * @param object $object
      * @return $this
      * @throws UnexpectedValueException
@@ -73,6 +77,9 @@ class CreateMandateBase extends DataObject
         }
         if (property_exists($object, 'signatureType')) {
             $this->signatureType = $object->signatureType;
+        }
+        if (property_exists($object, 'uniqueMandateReference')) {
+            $this->uniqueMandateReference = $object->uniqueMandateReference;
         }
         return $this;
     }

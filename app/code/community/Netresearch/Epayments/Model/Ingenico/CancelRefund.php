@@ -1,30 +1,7 @@
 <?php
 
 /**
- * Netresearch_Epayments
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/osl-3.0.php
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade this extension to
- * newer versions in the future.
- *
- * @category  Epayments
- * @package   Netresearch_Epayments
- * @author    Paul Siedler <paul.siedler@netresearch.de>
- * @copyright 2017 Netresearch GmbH & Co. KG
- * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      http://www.netresearch.de/
- *
- *
  * Class Netresearch_Epayments_Model_Ingenico_CancelRefund
- * @see https://epayments-api.developer-ingenico.com/s2sapi/v1/en_US/php/refunds/cancel.html
  */
 class Netresearch_Epayments_Model_Ingenico_CancelRefund
     extends Netresearch_Epayments_Model_Ingenico_AbstractAction
@@ -34,8 +11,8 @@ class Netresearch_Epayments_Model_Ingenico_CancelRefund
      * @var string[]
      */
     protected $allowedStates = array(
-        Netresearch_Epayments_Model_Ingenico_StatusInterface::PENDING_APPROVAL,
-        Netresearch_Epayments_Model_Ingenico_StatusInterface::REFUND_REQUESTED
+        Netresearch_Epayments_Model_Ingenico_RefundHandlerInterface::REFUND_PENDING_APPROVAL,
+        Netresearch_Epayments_Model_Ingenico_RefundHandlerInterface::REFUND_REFUND_REQUESTED
     );
 
     /**
@@ -54,9 +31,9 @@ class Netresearch_Epayments_Model_Ingenico_CancelRefund
     protected $retrievePayment;
 
     /**
-     * @var Netresearch_Epayments_Model_Ingenico_StatusFactory
+     * @var Netresearch_Epayments_Model_Ingenico_Status_ResolverInterface
      */
-    protected $statusFactory;
+    protected $statusResolver;
 
     /**
      * Netresearch_Epayments_Model_Ingenico_CancelRefund constructor.
@@ -66,7 +43,7 @@ class Netresearch_Epayments_Model_Ingenico_CancelRefund
         $this->ingenicoClient = Mage::getSingleton('netresearch_epayments/ingenico_client');
         $this->ePaymentsConfig = Mage::getSingleton('netresearch_epayments/config');
         $this->retrievePayment = Mage::getSingleton('netresearch_epayments/ingenico_retrievePayment');
-        $this->statusFactory = Mage::getModel('netresearch_epayments/ingenico_statusFactory');
+        $this->statusResolver = Mage::getModel('netresearch_epayments/ingenico_status_resolver');
 
         parent::__construct();
     }
@@ -103,9 +80,7 @@ class Netresearch_Epayments_Model_Ingenico_CancelRefund
 
         $refundResponse = $this->statusResponseManager->get($payment, $refundId);
 
-        $status = $this->statusFactory->create($refundResponse);
-
-        $status->apply($order);
+        $this->statusResolver->resolve($order, $refundResponse);
 
         $creditmemo->cancel();
     }

@@ -1,13 +1,21 @@
 <?php
 
-use Netresearch_Epayments_Model_Ingenico_Status_Refund_AbstractStatus as AbstractStatus;
+use \Ingenico\Connect\Sdk\Domain\Definitions\AbstractOrderStatus;
+use Netresearch_Epayments_Model_Ingenico_RefundHandlerInterface as RefundHandlerInterface;
 
 /**
  * Class Netresearch_Epayments_Model_Ingenico_Status_Refund_Cancelled
  */
-class Netresearch_Epayments_Model_Ingenico_Status_Refund_Cancelled extends AbstractStatus
+class Netresearch_Epayments_Model_Ingenico_Status_Refund_Cancelled implements RefundHandlerInterface
 {
-    /** @var string[] */
+    /**
+     * @var Netresearch_Epayments_Model_Order_Creditmemo_ServiceInterface
+     */
+    protected $creditmemoService;
+
+    /**
+     * @var string[]
+     */
     protected static $totals = array(
         'total_refunded' => 'grand_total',
         'base_total_refunded' => 'base_grand_total',
@@ -32,14 +40,25 @@ class Netresearch_Epayments_Model_Ingenico_Status_Refund_Cancelled extends Abstr
     );
 
     /**
-     * {@inheritDoc}
+     * Netresearch_Epayments_Model_Ingenico_Status_Refund_Cancelled constructor.
      */
-    public function _apply(Mage_Sales_Model_Order $order)
+    public function __construct()
+    {
+        $this->creditmemoService = Mage::getSingleton('netresearch_epayments/order_creditmemo_service');
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     * @param AbstractOrderStatus $ingenicoStatus
+     */
+    public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
     {
         $payment = $order->getPayment();
         /** @var Mage_Sales_Model_Order_Creditmemo $creditmemo */
-        $creditmemo = $this->getCreditmemo($payment);
+        $creditmemo = $this->creditmemoService->getCreditmemo($payment, $ingenicoStatus->id);
+
         if ($creditmemo->getId()) {
+            $payment->setCreditmemo($creditmemo);
             $this->applyCreditmemo($creditmemo);
             $payment->setIsRefundCancellationInProgress(true);
             $payment->cancelCreditmemo($creditmemo);
@@ -60,7 +79,7 @@ class Netresearch_Epayments_Model_Ingenico_Status_Refund_Cancelled extends Abstr
     }
 
     /**
-     * {@inheritDoc}
+     * @param Mage_Sales_Model_Order_Creditmemo $creditmemo
      */
     public function applyCreditmemo(Mage_Sales_Model_Order_Creditmemo $creditmemo)
     {
@@ -140,9 +159,11 @@ class Netresearch_Epayments_Model_Ingenico_Status_Refund_Cancelled extends Abstr
             $order->setState(
                 $state,
                 true,
-                Mage::helper('netresearch_epayments')->__('Refund %s refused/cancelled.', $this->ingenicoOrderStatus->id)
+                Mage::helper('netresearch_epayments')
+                    ->__('Refund %s refused/cancelled.', $this->ingenicoOrderStatus->id)
             );
         }
+
         $order->addRelatedObject($creditmemo);
         $order->addRelatedObject($creditmemo->getInvoice());
     }
@@ -157,12 +178,12 @@ class Netresearch_Epayments_Model_Ingenico_Status_Refund_Cancelled extends Abstr
     protected function resetOrderTotals(
         Mage_Sales_Model_Order $order,
         Mage_Sales_Model_Order_Creditmemo $creditmemo
-    )
-    {
+    ) {
         foreach ($this::$totals as $orderTotal => $creditmemoTotal) {
             if (is_numeric($orderTotal)) {
                 $orderTotal = $creditmemoTotal . '_refunded';
             }
+
             $value = $order->getData($orderTotal) - $creditmemo->getData($creditmemoTotal);
             $order->setData(
                 $orderTotal,

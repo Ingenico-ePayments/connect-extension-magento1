@@ -33,7 +33,7 @@ SdkClient.prototype = {
      * @param {bool} isRecurring
      * @param {string} locale
      */
-    initialize: function(clientSessionId, customerId, assetsBaseUrl, apiBaseUrl, amount, currency, countryCode, isRecurring, locale) {
+    initialize: function (clientSessionId, customerId, assetsBaseUrl, apiBaseUrl, amount, currency, countryCode, isRecurring, locale) {
         this.paymentDetails = {
             "totalAmount": amount,
             "currency": currency,
@@ -53,7 +53,7 @@ SdkClient.prototype = {
      * @param assetsBaseUrl
      * @param apiBaseUrl
      */
-    initSession: function(clientSessionId, customerId, assetsBaseUrl, apiBaseUrl) {
+    initSession: function (clientSessionId, customerId, assetsBaseUrl, apiBaseUrl) {
         var sessionDetails = {
             "clientSessionID": clientSessionId,
             "customerId": customerId,
@@ -70,7 +70,7 @@ SdkClient.prototype = {
      * @param paymentProductId
      * @return Promise for Payment Product Response
      */
-    getPaymentProduct: function(paymentProductId) {
+    getPaymentProduct: function (paymentProductId) {
         return this.session.getPaymentProduct(
             paymentProductId,
             this.paymentDetails
@@ -82,7 +82,7 @@ SdkClient.prototype = {
      *
      * @return Promise for PaymentProducts response
      */
-    getPaymentProducts: function() {
+    getPaymentProducts: function () {
         return this.session.getBasicPaymentProducts(this.paymentDetails);
     },
 
@@ -91,7 +91,7 @@ SdkClient.prototype = {
      *
      * @return Promise for PaymentProductGroups response
      */
-    getProductGroups: function() {
+    getProductGroups: function () {
         return this.session.getBasicPaymentProductGroups(
             this.paymentDetails
         );
@@ -100,14 +100,32 @@ SdkClient.prototype = {
     /**
      * @return {PaymentRequest}
      */
-    getPaymentRequest: function() {
+    getPaymentRequest: function () {
         return this.session.getPaymentRequest();
     },
 
     /**
      * @return {Encryptor}
      */
-    getEncryptor: function() {
+    getEncryptor: function () {
         return this.session.getEncryptor();
+    },
+
+    /**
+     * Accepts an object in the form to override the predefined payment details
+     * {
+     *     parameter: {
+     *         value: 'value'
+     *     }
+     * }
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties
+     * @param {object} overrideParams - object to be passed to Object.defineProperties
+     */
+    updatePaymentDetails: function (overrideParams) {
+        this.paymentDetails = Object.defineProperties(this.paymentDetails,
+            overrideParams
+        );
+        return this;
     }
 };
