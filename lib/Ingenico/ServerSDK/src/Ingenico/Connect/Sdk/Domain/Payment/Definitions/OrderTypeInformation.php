@@ -21,6 +21,11 @@ class OrderTypeInformation extends DataObject
     /**
      * @var string
      */
+    public $transactionType = null;
+
+    /**
+     * @var string
+     */
     public $usageType = null;
 
     /**
@@ -33,6 +38,9 @@ class OrderTypeInformation extends DataObject
         parent::fromObject($object);
         if (property_exists($object, 'purchaseType')) {
             $this->purchaseType = $object->purchaseType;
+        }
+        if (property_exists($object, 'transactionType')) {
+            $this->transactionType = $object->transactionType;
         }
         if (property_exists($object, 'usageType')) {
             $this->usageType = $object->usageType;

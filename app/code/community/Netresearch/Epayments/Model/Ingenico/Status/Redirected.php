@@ -29,5 +29,11 @@ class Netresearch_Epayments_Model_Ingenico_Status_Redirected implements HandlerI
     public function resolveStatus(Mage_Sales_Model_Order $order, AbstractOrderStatus $ingenicoStatus)
     {
         $this->orderEMailManager->process($order, $ingenicoStatus->status);
+
+        /**
+         * For inline payments with redirect actions a transaction is created. If the transaction is not kept open,
+         * a later online capture is impossible
+         */
+        $order->getPayment()->setIsTransactionClosed(false);
     }
 }

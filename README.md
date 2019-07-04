@@ -4,7 +4,7 @@ Payment extension for processing the Magento order workflow via the Global Colle
 
 Facts
 -----
-- version: 1.4.0
+- version: 1.5.1
 - extension key: Netresearch_Epayments
 
 Description

@@ -14,7 +14,7 @@ class RedirectPaymentProduct840SpecificInput extends AbstractRedirectPaymentProd
 {
     /**
      * @var string
-     * @deprecated use order.references.descriptor instead.
+     * @deprecated Use Order.references.descriptor instead
      */
     public $custom = null;
 

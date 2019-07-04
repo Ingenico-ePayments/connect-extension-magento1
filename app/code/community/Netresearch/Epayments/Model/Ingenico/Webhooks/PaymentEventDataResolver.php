@@ -15,9 +15,13 @@ class Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver imp
     /**
      * Netresearch_Epayments_Model_Ingenico_Webhooks_PaymentEventDataResolver constructor.
      */
-    public function __construct()
+    public function __construct(array $data = array())
     {
-        $this->merchantReference = Mage::getSingleton('netresearch_epayments/ingenico_merchantReference');
+        if (isset($data['merchant_reference'])) {
+            $this->merchantReference = $data['merchant_reference'];
+        } else {
+            $this->merchantReference = Mage::getSingleton('netresearch_epayments/ingenico_merchantReference');
+        }
     }
 
     /**

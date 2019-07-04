@@ -13,7 +13,7 @@ class Netresearch_Epayments_Model_Ingenico_GlobalCollect_OrderStatusHelper
     /**
      * @var int[]
      */
-    protected $statusesForSkipping = array(800, 900, 975);
+    protected $statusesForSkipping = array(800, 900, 935, 975);
 
     /**
      * @var string[]

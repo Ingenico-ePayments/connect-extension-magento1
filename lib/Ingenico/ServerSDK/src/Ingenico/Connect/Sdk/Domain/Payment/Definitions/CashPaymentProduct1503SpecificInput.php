@@ -10,11 +10,13 @@ use UnexpectedValueException;
 
 /**
  * @package Ingenico\Connect\Sdk\Domain\Payment\Definitions
+ * @deprecated No replacement
  */
 class CashPaymentProduct1503SpecificInput extends DataObject
 {
     /**
      * @var string
+     * @deprecated No replacement, since Boleto Bancario no longer needs a return URL
      */
     public $returnUrl = null;
 
