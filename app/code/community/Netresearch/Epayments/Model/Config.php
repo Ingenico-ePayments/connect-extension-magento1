@@ -70,20 +70,6 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
     const CONFIG_INGENICO_SYSTEM_PREFIX = 'ingenico_epayments/settings/system_prefix';
 
     /**
-     * @var Mage_Core_Model_Encryption
-     */
-    private $encryptor;
-
-    /**
-     * Netresearch_Epayments_Model_Config constructor.
-     */
-    public function __construct()
-    {
-        $this->encryptor = Mage::getModel('core/encryption');
-    }
-
-
-    /**
      * @param int $storeId
      * @return string
      */
@@ -113,9 +99,7 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
      */
     public function getApiSecret($storeId = null)
     {
-        return $this->encryptor->decrypt(
-            Mage::getStoreConfig(self::CONFIG_INGENICO_API_SECRET, $storeId)
-        );
+        return Mage::getStoreConfig(self::CONFIG_INGENICO_API_SECRET, $storeId);
     }
 
     /**
@@ -181,9 +165,7 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
      */
     public function getWebhooksSecretKey($storeId = null)
     {
-        return $this->encryptor->decrypt(
-            Mage::getStoreConfig(self::CONFIG_INGENICO_WEBHOOKS_SECRET_KEY, $storeId)
-        );
+        return Mage::getStoreConfig(self::CONFIG_INGENICO_WEBHOOKS_SECRET_KEY, $storeId);
     }
 
     /**
@@ -199,9 +181,7 @@ class Netresearch_Epayments_Model_Config implements Netresearch_Epayments_Model_
      */
     public function getSecondaryWebhooksSecretKey($storeId = null)
     {
-        return $this->encryptor->decrypt(
-            Mage::getStoreConfig(self::CONFIG_INGENICO_WEBHOOKS_SECRET_KEY_SECONDARY, $storeId)
-        );
+        return Mage::getStoreConfig(self::CONFIG_INGENICO_WEBHOOKS_SECRET_KEY_SECONDARY, $storeId);
     }
 
     /**
