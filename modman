@@ -1,14 +1,13 @@
-src/app/code/community/Netresearch/Epayments                               app/code/community/Netresearch/Epayments
-src/app/design/frontend/base/default/template/epayments                    app/design/frontend/base/default/template/epayments
-src/app/design/adminhtml/default/default/template/epayments                app/design/adminhtml/default/default/template/epayments
-src/app/etc/modules/Netresearch_Epayments.xml                              app/etc/modules/Netresearch_Epayments.xml
-src/shell/ingenico_wximport.php                                            shell/ingenico_wximport.php
-src/shell/ingenico_processevents.php                                       shell/ingenico_processevents.php
-src/lib/Ingenico                                                           lib/Ingenico
-src/app/locale/en_US/template/email/netresearch_epayments/                 app/locale/en_US/template/email/netresearch_epayments/
-src/js/ingenico_epayments                                                  js/ingenico_epayments
-src/app/design/frontend/base/default/layout/ingenico_epayments.xml         app/design/frontend/base/default/layout/ingenico_epayments.xml
-src/skin/frontend/base/default/ingenico_epayments/                         skin/frontend/base/default/css/ingenico_epayments/
-src/app/design/adminhtml/default/default/layout/ingenico_epayments.xml     app/design/adminhtml/default/default/layout/ingenico_epayments.xml
-src/skin/adminhtml/default/default/ingenico_epayments.css                  skin/adminhtml/default/default/ingenico_epayments.css
-
+app/code/community/Ingenico/Connect                               app/code/community/Ingenico/Connect
+app/design/frontend/base/default/template/epayments                    app/design/frontend/base/default/template/epayments
+app/design/adminhtml/default/default/template/epayments                app/design/adminhtml/default/default/template/epayments
+app/etc/modules/Ingenico_Connect.xml                              app/etc/modules/Ingenico_Connect.xml
+shell/ingenico_wximport.php                                            shell/ingenico_wximport.php
+shell/ingenico_processevents.php                                       shell/ingenico_processevents.php
+lib/Ingenico                                                           lib/Ingenico
+app/locale/en_US/template/email/ingenico_connect/                 app/locale/en_US/template/email/ingenico_connect/
+js/ingenico_epayments                                                  js/ingenico_epayments
+app/design/frontend/base/default/layout/ingenico_epayments.xml         app/design/frontend/base/default/layout/ingenico_epayments.xml
+skin/frontend/base/default/ingenico_epayments/                         skin/frontend/base/default/css/ingenico_epayments/
+app/design/adminhtml/default/default/layout/ingenico_epayments.xml     app/design/adminhtml/default/default/layout/ingenico_epayments.xml
+skin/adminhtml/default/default/ingenico_epayments.css                  skin/adminhtml/default/default/ingenico_epayments.css

@@ -2,23 +2,23 @@
 require_once dirname($_SERVER['SCRIPT_FILENAME']) . '/abstract.php';
 
 /**
- * Class Netresearch_Epayments_Shell_ProcessEvents
+ * Class Ingenico_Connect_Shell_ProcessEvents
  */
-class Netresearch_Epayments_Shell_ProcessEvents extends Mage_Shell_Abstract
+class Ingenico_Connect_Shell_ProcessEvents extends Mage_Shell_Abstract
 {
     /**
-     * @var Netresearch_Epayments_Model_Event_Processor
+     * @var Ingenico_Connect_Model_Event_Processor
      */
     protected $processor;
 
     /**
-     * Netresearch_Epayments_Shell_ProcessEvents constructor.
+     * Ingenico_Connect_Shell_ProcessEvents constructor.
      */
     public function __construct()
     {
         parent::__construct();
-        Netresearch_Epayments_Model_Autoloader::register();
-        $this->processor = Mage::getSingleton('netresearch_epayments/event_processor');
+        Ingenico_Connect_Model_Autoloader::register();
+        $this->processor = Mage::getSingleton('ingenico_connect/event_processor');
     }
 
 
@@ -48,5 +48,5 @@ USAGE;
     }
 }
 
-$shell = new Netresearch_Epayments_Shell_ProcessEvents();
+$shell = new Ingenico_Connect_Shell_ProcessEvents();
 $shell->run();

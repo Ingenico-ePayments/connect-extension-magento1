@@ -1,0 +1,295 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Ingenico_Connect>
+            <version>2.0.0</version>
+        </Ingenico_Connect>
+    </modules>
+    <global>
+        <blocks>
+            <ingenico_connect>
+                <class>Ingenico_Connect_Block</class>
+            </ingenico_connect>
+        </blocks>
+        <template>
+            <email>
+                <ingenico_connect_fraud_email>
+                    <label>Ingenico ePayments fraud email</label>
+                    <file>ingenico_connect/fraud_email.html</file>
+                    <type>html</type>
+                </ingenico_connect_fraud_email>
+                <ingenico_connect_payment_update>
+                    <label>Ingenico ePayments Payment Update</label>
+                    <file>ingenico_connect/payment_update.html</file>
+                    <type>html</type>
+                </ingenico_connect_payment_update>
+                <ingenico_connect_legacy_payment_update>
+                    <label>Ingenico ePayments Payment Update</label>
+                    <file>ingenico_connect/legacy/payment_update.html</file>
+                    <type>html</type>
+                </ingenico_connect_legacy_payment_update>
+                <ingenico_connect_legacy_fraud_email>
+                    <label>Ingenico ePayments fraud email</label>
+                    <file>ingenico_connect/legacy/fraud_email.html</file>
+                    <type>html</type>
+                </ingenico_connect_legacy_fraud_email>
+            </email>
+        </template>
+        <helpers>
+            <ingenico_connect>
+                <class>Ingenico_Connect_Helper</class>
+            </ingenico_connect>
+        </helpers>
+        <models>
+            <ingenico_connect>
+                <class>Ingenico_Connect_Model</class>
+                <resourceModel>ingenico_connect_resources</resourceModel>
+            </ingenico_connect>
+            <ingenico_connect_resources>
+                <class>Ingenico_Connect_Model_Resource</class>
+                <entities>
+                    <token>
+                        <table>ingenico_connect_customer_token</table>
+                    </token>
+                    <event>
+                        <table>ingenico_connect_webhook_event</table>
+                    </event>
+                </entities>
+            </ingenico_connect_resources>
+        </models>
+        <resources>
+            <ingenico_connect_setup>
+                <setup>
+                    <class>Mage_Sales_Model_Resource_Setup</class>
+                    <module>Ingenico_Connect</module>
+                </setup>
+            </ingenico_connect_setup>
+        </resources>
+
+        <events>
+            <default>
+                <observers>
+                    <ingenico_connect>
+                        <class>ingenico_connect/observer_autoloader</class>
+                        <method>controllerFrontInitBefore</method>
+                        <type>singleton</type>
+                    </ingenico_connect>
+                </observers>
+            </default>
+            <controller_front_init_before>
+                <observers>
+                    <ingenico_connect>
+                        <class>ingenico_connect/observer_autoloader</class>
+                        <method>controllerFrontInitBefore</method>
+                        <type>singleton</type>
+                    </ingenico_connect>
+                </observers>
+            </controller_front_init_before>
+            <sales_order_payment_cancel_invoice>
+                <observers>
+                    <ingenico_connect>
+                        <class>ingenico_connect/observer</class>
+                        <type>singleton</type>
+                        <method>undoCapturePaymentRequest</method>
+                    </ingenico_connect>
+                </observers>
+            </sales_order_payment_cancel_invoice>
+            <sales_order_payment_cancel_creditmemo>
+                <observers>
+                    <ingenico_connect>
+                        <class>ingenico_connect/observer</class>
+                        <type>singleton</type>
+                        <method>cancelCreditmemo</method>
+                    </ingenico_connect>
+                </observers>
+            </sales_order_payment_cancel_creditmemo>
+            <ingenico_status_resolve_before>
+                <observers>
+                    <ingenico_connect>
+                        <class>ingenico_connect/observer</class>
+                        <type>singleton</type>
+                        <method>aroundResolveStatus</method>
+                    </ingenico_connect>
+                </observers>
+            </ingenico_status_resolve_before>
+        </events>
+    </global>
+
+    <frontend>
+        <layout>
+            <updates>
+                <ingenico_epayments>
+                    <file>ingenico_epayments.xml</file>
+                </ingenico_epayments>
+            </updates>
+        </layout>
+        <routers>
+            <epayments>
+                <use>standard</use>
+                <args>
+                    <module>Ingenico_Connect</module>
+                    <frontName>epayments</frontName>
+                </args>
+            </epayments>
+        </routers>
+        <secure_url>
+            <epayments>/epayments/</epayments>
+        </secure_url>
+    </frontend>
+
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <Ingenico_Connect after="Mage_Adminhtml">Ingenico_Connect_Adminhtml</Ingenico_Connect>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+
+    <adminhtml>
+        <layout>
+            <updates>
+                <ingenico_epayments>
+                    <file>ingenico_epayments.xml</file>
+                </ingenico_epayments>
+            </updates>
+        </layout>
+        <events>
+            <adminhtml_widget_container_html_before>
+                <observers>
+                    <ingenico_connect_addRefundUrl>
+                        <type>singleton</type>
+                        <class>ingenico_connect/observer</class>
+                        <method>addRefundUrlToButton</method>
+                    </ingenico_connect_addRefundUrl>
+                    <ingenico_connect_updateOrderStatusButton>
+                        <type>singleton</type>
+                        <class>ingenico_connect/observer</class>
+                        <method>addUpdateOrderButton</method>
+                    </ingenico_connect_updateOrderStatusButton>
+                    <ingenico_connect_addCancelButton>
+                        <type>singleton</type>
+                        <class>ingenico_connect/observer</class>
+                        <method>removeCancelCreditmemoButton</method>
+                    </ingenico_connect_addCancelButton>
+                </observers>
+            </adminhtml_widget_container_html_before>
+        </events>
+    </adminhtml>
+
+    <crontab>
+        <jobs>
+            <ingenico_cancel_pending_orders>
+                <schedule>
+                    <cron_expr>0 5 * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>ingenico_connect/cron_cancelPendingOrders::execute</model>
+                </run>
+            </ingenico_cancel_pending_orders>
+            <ingenico_process_pending_orders>
+                <schedule>
+                    <cron_expr>*/5 * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>ingenico_connect/orderUpdate_observer::processPendingOrder</model>
+                </run>
+            </ingenico_process_pending_orders>
+            <ingenico_process_webhook_events>
+                <schedule>
+                    <cron_expr>*/5 * * * *</cron_expr>
+                </schedule>
+                <run>
+                    <model>ingenico_connect/cron_processEvents::execute</model>
+                </run>
+            </ingenico_process_webhook_events>
+        </jobs>
+    </crontab>
+
+    <default>
+        <payment>
+            <hosted_checkout>
+                <active>1</active>
+                <model>ingenico_connect/method_hostedCheckout</model>
+                <payment_action>authorize</payment_action>
+            </hosted_checkout>
+        </payment>
+        <ingenico_epayments>
+            <general>
+                <title>Ingenico ePayments</title>
+            </general>
+            <settings>
+                <api_secret backend_model="adminhtml/system_config_backend_encrypted" />
+                <secret_key backend_model="adminhtml/system_config_backend_encrypted" />
+                <secret_key_secondary backend_model="adminhtml/system_config_backend_encrypted" />
+                <hosted_checkout_subdomain>https://payment.</hosted_checkout_subdomain>
+                <log_all_requests>0</log_all_requests>
+                <log_all_requests_file>ingenico_epayments.log</log_all_requests_file>
+            </settings>
+            <checkout>
+                <inline_payments>0</inline_payments>
+            </checkout>
+            <captures>
+                <capture_mode>authorize</capture_mode>
+            </captures>
+            <email_template>ingenico_connect_payment_update</email_template>
+            <legacy_email_template>ingenico_connect_legacy_payment_update</legacy_email_template>
+            <fraud>
+                <email_template>ingenico_connect_fraud_email</email_template>
+                <legacy_email_template>ingenico_connect_legacy_fraud_email</legacy_email_template>
+            </fraud>
+            <payment_statuses>
+                <ACCOUNT_VERIFIED><![CDATA[The account has been verified using a validation services like 0$ auth]]></ACCOUNT_VERIFIED>
+                <CREATED><![CDATA[The transaction has been created. This is the initial state once a new payment is created.]]></CREATED>
+                <REDIRECTED><![CDATA[The consumer has been redirected to a 3rd party to complete the authentication/payment]]></REDIRECTED>
+                <PENDING_PAYMENT><![CDATA[Instructions have been provided and we are now waiting for the money to come in]]></PENDING_PAYMENT>
+                <PENDING_FRAUD_APPROVAL><![CDATA[The transaction has been marked for manual review after an automatic fraud screening]]></PENDING_FRAUD_APPROVAL>
+                <PENDING_APPROVAL><![CDATA[ The transaction is waiting for you to request one capture of the funds]]></PENDING_APPROVAL>
+                <PENDING_CAPTURE><![CDATA[The transaction is waiting for you to request one or more captures of the funds]]></PENDING_CAPTURE>
+                <REJECTED><![CDATA[The transaction has been rejected]]></REJECTED>
+                <AUTHORIZATION_REQUESTED><![CDATA[We have requested an authorization against an asynchronous system and is awaiting its response]]></AUTHORIZATION_REQUESTED>
+                <CAPTURE_REQUESTED><![CDATA[The transaction is in the queue to be captured]]></CAPTURE_REQUESTED>
+                <CAPTURED><![CDATA[The transaction has been captured and we have received online confirmation]]></CAPTURED>
+                <PAID><![CDATA[We have matched the incoming funds to the transaction]]></PAID>
+                <CANCELLED><![CDATA[You have cancelled the transaction]]></CANCELLED>
+                <REJECTED_CAPTURE><![CDATA[We or one of our downstream acquirers/providers have rejected the capture request]]></REJECTED_CAPTURE>
+                <REVERSED><![CDATA[The transaction has been reversed]]></REVERSED>
+                <CHARGEBACKED><![CDATA[The transaction has been chargebacked]]></CHARGEBACKED>
+                <REFUNDED><![CDATA[The transaction has been refunded]]></REFUNDED>
+            </payment_statuses>
+            <payment_method_groups>
+                <TOKEN>Saved payment options</TOKEN>
+                <BANKTRANSFER>Bank transfer</BANKTRANSFER>
+                <CARD>Credit cards</CARD>
+                <CASH>Cash</CASH>
+                <DIRECTDEBIT>Direct debit</DIRECTDEBIT>
+                <EINVOICE>e-Invoice</EINVOICE>
+                <INVOICE>Invoice</INVOICE>
+                <REDIRECT>Redirect</REDIRECT>
+            </payment_method_groups>
+            <email_settings>
+                <payment_successful>1</payment_successful>
+                <fraud_suspicion>1</fraud_suspicion>
+                <action_needed>1</action_needed>
+                <delayed_settlement>1</delayed_settlement>
+                <slow_3rd_party>1</slow_3rd_party>
+            </email_settings>
+            <account_verified>0</account_verified>
+        </ingenico_epayments>
+    </default>
+
+    <hosted_checkout>
+        <decorator_mappings>
+            <card>ingenico_connect/ingenico_requestBuilder_specificInput_cardDecorator</card>
+            <redirect>ingenico_connect/ingenico_requestBuilder_specificInput_redirectDecorator</redirect>
+            <bankTransfer>ingenico_connect/ingenico_requestBuilder_specificInput_bankTransferDecorator</bankTransfer>
+            <cash>ingenico_connect/ingenico_requestBuilder_specificInput_cashDecorator</cash>
+            <eInvoice>ingenico_connect/ingenico_requestBuilder_specificInput_eInvoiceDecorator</eInvoice>
+            <directDebit>ingenico_connect/ingenico_requestBuilder_specificInput_sepaDirectDebitDecorator</directDebit>
+            <nonSepaDirectDebit>ingenico_connect/ingenico_requestBuilder_specificInput_directDebitDecorator</nonSepaDirectDebit>
+        </decorator_mappings>
+    </hosted_checkout>
+</config>

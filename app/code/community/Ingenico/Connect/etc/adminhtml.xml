@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<config>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <system>
+                        <children>
+                            <config>
+                                <children>
+                                    <ingenico_epayments translate="title" module="ingenico_connect">
+                                        <title>Ingenico ePayments Section</title>
+                                    </ingenico_epayments>
+                                </children>
+                            </config>
+
+                        </children>
+                    </system>
+                    <sales>
+                        <children>
+                            <order>
+                                <children>
+                                    <actions>
+                                        <children>
+                                            <updateOrder translate="title" module="ingenico_connect"><title>Update Ingenico Status</title></updateOrder>
+                                        </children>
+                                    </actions>
+                                </children>
+                            </order>
+                        </children>
+                    </sales>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

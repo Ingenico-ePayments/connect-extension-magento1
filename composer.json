@@ -1,0 +1,21 @@
+{
+  "name": "ingenico-epayments/connect-extension-magento1",
+  "license": "MIT",
+  "type": "magento-module",
+  "description": "Magento 1 Extension for connecting to the Ingenico ePayments Connect platform",
+  "suggest": {
+    "magento-hackathon/magento-composer-installer": "^3.0.6"
+  },
+  "support": {
+    "wiki": "https://www.ingenico.com/epayments/support",
+    "docs": "https://marketplace.magento.com/ingenico-module-connect-m1.html"
+  },
+  "authors": [
+    {
+      "name": "Ingenico ePayments",
+      "email": "connect@ingenico.com",
+      "homepage": "https://epayments.developer-ingenico.com/",
+      "role": "Developer"
+    }
+  ]
+}

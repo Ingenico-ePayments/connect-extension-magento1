@@ -2,19 +2,19 @@
 
 require_once dirname($_SERVER['SCRIPT_FILENAME']) . '/abstract.php';
 
-class Netresearch_Epayments_Shell_WxImport extends Mage_Shell_Abstract
+class Ingenico_Connect_Shell_WxImport extends Mage_Shell_Abstract
 {
-    /** @var Netresearch_Epayments_Model_Cron_FetchWxFiles_ProcessorInterface */
+    /** @var Ingenico_Connect_Model_Cron_FetchWxFiles_ProcessorInterface */
     private $processor;
 
     /**
-     * Netresearch_Epayments_Shell_WxImport constructor.
+     * Ingenico_Connect_Shell_WxImport constructor.
      */
     public function __construct()
     {
         parent::__construct();
-        Netresearch_Epayments_Model_Autoloader::register();
-        $this->processor = \Mage::getSingleton('netresearch_epayments/cron_fetchWxFiles_processor');
+        Ingenico_Connect_Model_Autoloader::register();
+        $this->processor = \Mage::getSingleton('ingenico_connect/cron_fetchWxFiles_processor');
     }
 
     public function run()
@@ -41,5 +41,5 @@ Usage:  php -f ingenico_wximport.php -- [options]
 USAGE;
     }
 }
-$shell = new Netresearch_Epayments_Shell_WxImport();
+$shell = new Ingenico_Connect_Shell_WxImport();
 $shell->run();

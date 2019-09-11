@@ -1,0 +1,98 @@
+<?php
+
+use Ingenico_Connect_Model_Method_HostedCheckout as HostedCheckout;
+use Ingenico_Connect_Model_Ingenico_AbstractAction as AbstractAction;
+use Ingenico_Connect_Model_Ingenico_ActionInterface as ActionInterface;
+
+/**
+ * Class Ingenico_Connect_Model_Ingenico_ApproveChallengedPayment
+ *
+ * @link https://developer.globalcollect.com/documentation/api/server/#__merchantId__payments__paymentId__processchallenged_post
+ */
+class Ingenico_Connect_Model_Ingenico_ApproveChallengedPayment extends AbstractAction implements ActionInterface
+{
+    /**
+     * @var Ingenico_Connect_Model_Ingenico_Api_ClientInterface
+     */
+    protected $ingenicoClient;
+
+    /**
+     * @var Ingenico_Connect_Model_ConfigInterface
+     */
+    protected $ePaymentsConfig;
+
+    /**
+     * @var Ingenico_Connect_Model_Ingenico_Status_Resolver
+     */
+    protected $statusResolver;
+
+    /**
+     * Ingenico_Connect_Model_Ingenico_ApproveChallengedPayment constructor.
+     */
+    public function __construct()
+    {
+        $this->ingenicoClient  = Mage::getSingleton('ingenico_connect/ingenico_client');
+        $this->ePaymentsConfig = Mage::getSingleton('ingenico_connect/config');
+        $this->statusResolver = Mage::getSingleton('ingenico_connect/ingenico_status_resolver');
+
+        parent::__construct();
+    }
+
+    /**
+     * @param Mage_Sales_Model_Order $order
+     * @throws Mage_Core_Exception
+     */
+    public function process(Mage_Sales_Model_Order $order)
+    {
+        $isIngenicoFraudOrder = Mage::helper('ingenico_connect')->isIngenicoFraudOrder($order);
+
+        if (!$isIngenicoFraudOrder) {
+            throw new InvalidArgumentException(
+                'This order was not placed via Ingenico ePayments or was not detected as fraud'
+            );
+        }
+
+        $payment = $order->getPayment();
+        $paymentId = $payment->getAdditionalInformation(HostedCheckout::PAYMENT_ID_KEY);
+
+        $response = $this->ingenicoClient->getIngenicoClient($order->getStoreId())
+                                         ->merchant($this->ePaymentsConfig->getMerchantId($order->getStoreId()))
+                                         ->payments()
+                                         ->processchallenged($paymentId);
+
+        $this->statusResolver->resolve($order, $response);
+        /** update invoice set state open */
+        /** @var Mage_Sales_Model_Order_Invoice $invoice */
+        $invoice = $this->getInvoiceForTransactionId($paymentId, $order);
+        if ($invoice) {
+            $invoice->setState(Mage_Sales_Model_Order_Invoice::STATE_OPEN)->save();
+        }
+
+        /**
+         * Update order with the new status the payment would have moved to in case it wasn't marked as fraud payment
+         */
+        $transaction = $payment->getTransaction($paymentId);
+        $transaction->setIsClosed(false);
+        $this->postProcess($payment, $response);
+    }
+
+    /**
+     * Return invoice model for transaction
+     *
+     * @param string $transactionId
+     * @param Mage_Sales_Model_Order $order
+     * @return Mage_Sales_Model_Order_Invoice|false
+     */
+    protected function getInvoiceForTransactionId($transactionId, Mage_Sales_Model_Order $order)
+    {
+        foreach ($order->getInvoiceCollection() as $invoice) {
+            if ($invoice->getTransactionId() === $transactionId) {
+                $invoice->load($invoice->getId());
+
+                return $invoice;
+            }
+        }
+
+        return false;
+    }
+}

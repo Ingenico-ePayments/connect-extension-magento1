@@ -9,6 +9,8 @@ var InlinePaymentDataProcessor = Class.create(GenericPaymentDataProcessor, {
 
     tokenizeInputName: 'payment[gc_payment_product_tokenize]',
 
+    accountOnFileInputName: 'payment[gc_payment_account_on_file]',
+
     /**
      * Wrap payment save function
      *
@@ -136,6 +138,8 @@ var InlinePaymentDataProcessor = Class.create(GenericPaymentDataProcessor, {
             data['paymentProduct'] = this.paymentProduct;
             if (this.accountOnFile) {
                 data['accountOnFile'] = this.accountOnFile;
+                var accountOnFileView = new HiddenInputView(this.accountOnFileInputName, true);
+                accountOnFileView.render();
             }
             var payloadFactory = new PayloadFactory(this.sdkClient);
             var payload = await payloadFactory.create(data);
