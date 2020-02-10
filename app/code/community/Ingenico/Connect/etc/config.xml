@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Ingenico_Connect>
-            <version>2.0.0</version>
+            <version>2.1.0</version>
         </Ingenico_Connect>
     </modules>
     <global>
@@ -103,6 +103,24 @@
                     </ingenico_connect>
                 </observers>
             </sales_order_payment_cancel_creditmemo>
+            <sales_order_payment_place_end>
+                <observers>
+                    <ingenico_connect>
+                        <class>ingenico_connect/observer</class>
+                        <type>singleton</type>
+                        <method>overrideOrderStatus</method>
+                    </ingenico_connect>
+                </observers>
+            </sales_order_payment_place_end>
+            <sales_order_save_before>
+                <observers>
+                    <ingenico_connect>
+                        <class>ingenico_connect/observer</class>
+                        <type>singleton</type>
+                        <method>overrideOrderStatus</method>
+                    </ingenico_connect>
+                </observers>
+            </sales_order_save_before>
             <ingenico_status_resolve_before>
                 <observers>
                     <ingenico_connect>
@@ -222,9 +240,9 @@
                 <title>Ingenico ePayments</title>
             </general>
             <settings>
-                <api_secret backend_model="adminhtml/system_config_backend_encrypted" />
-                <secret_key backend_model="adminhtml/system_config_backend_encrypted" />
-                <secret_key_secondary backend_model="adminhtml/system_config_backend_encrypted" />
+                <api_secret backend_model="adminhtml/system_config_backend_encrypted"/>
+                <secret_key backend_model="adminhtml/system_config_backend_encrypted"/>
+                <secret_key_secondary backend_model="adminhtml/system_config_backend_encrypted"/>
                 <hosted_checkout_subdomain>https://payment.</hosted_checkout_subdomain>
                 <log_all_requests>0</log_all_requests>
                 <log_all_requests_file>ingenico_epayments.log</log_all_requests_file>
@@ -237,6 +255,9 @@
             </captures>
             <email_template>ingenico_connect_payment_update</email_template>
             <legacy_email_template>ingenico_connect_legacy_payment_update</legacy_email_template>
+            <pending_orders_cancelation>
+                <days>3</days>
+            </pending_orders_cancelation>
             <fraud>
                 <email_template>ingenico_connect_fraud_email</email_template>
                 <legacy_email_template>ingenico_connect_legacy_fraud_email</legacy_email_template>

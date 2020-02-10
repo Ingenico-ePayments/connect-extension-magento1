@@ -9,7 +9,7 @@ class Ingenico_Connect_Model_Resource_Order_Collection extends Mage_Sales_Model_
      */
     public function addPendingStatusFilter()
     {
-        $this->addFieldToFilter('status', Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
+        $this->addFieldToFilter('status', 'pending');
 
         return $this;
     }

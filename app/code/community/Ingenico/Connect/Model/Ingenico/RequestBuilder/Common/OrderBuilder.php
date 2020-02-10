@@ -20,7 +20,6 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_OrderBuilder
      */
     protected $customerBuilder;
 
-
     /**
      * @var Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_Order_ShoppingCartBuilder
      */
@@ -32,6 +31,11 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_OrderBuilder
     protected $merchantReference;
 
     /**
+     * @var Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_Order_ShippingBuilder
+     */
+    protected $shippingBuilder;
+
+    /**
      * Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_OrderBuilder constructor.
      */
     public function __construct()
@@ -39,6 +43,7 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_OrderBuilder
         $this->ePaymentsConfig = Mage::getSingleton('ingenico_connect/config');
         $this->ePaymentsHelper = Mage::helper('ingenico_connect');
         $this->customerBuilder = Mage::getModel('ingenico_connect/ingenico_requestBuilder_common_order_customerBuilder');
+        $this->shippingBuilder = Mage::getModel('ingenico_connect/ingenico_requestBuilder_common_order_shippingBuilder');
         $this->shoppingCartBuilder = Mage::getModel(
             'ingenico_connect/ingenico_requestBuilder_common_order_shoppingCartBuilder'
         );
@@ -60,6 +65,7 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_OrderBuilder
         $ingenicoOrder->shoppingCart = $this->shoppingCartBuilder->create($order);
         $ingenicoOrder->references = $this->getReferences($order);
         $ingenicoOrder->additionalInput = $this->getAdditionalInput($order);
+        $ingenicoOrder->shipping = $this->shippingBuilder->create($order);
 
         return $ingenicoOrder;
     }

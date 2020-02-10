@@ -76,7 +76,7 @@ class Ingenico_Connect_Model_Ingenico_RetrievePayment implements ActionInterface
         $ingenicoPaymentId = $payment->getAdditionalInformation(HostedCheckout::PAYMENT_ID_KEY);
         if (!$ingenicoPaymentId) {
             try {
-                $orderWasUpdated = $this->updateHostedCheckoutStatus($order);
+                return $this->updateHostedCheckoutStatus($order);
             } catch (Exception $exception) {
                 Mage::throwException(
                     $this->helper->__('Order is not linked with Ingenico ePayments orders.')

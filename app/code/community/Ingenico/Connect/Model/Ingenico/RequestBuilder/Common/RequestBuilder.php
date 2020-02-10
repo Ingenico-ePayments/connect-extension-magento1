@@ -1,10 +1,10 @@
 <?php
 
+use Ingenico\Connect\Sdk\Domain\Hostedcheckout\CreateHostedCheckoutRequest;
+use Ingenico\Connect\Sdk\Domain\Payment\CreatePaymentRequest;
 use Ingenico_Connect_Model_Config as Config;
 use Ingenico_Connect_Model_Ingenico_RequestBuilder_DecoratorPool as DecoratorPool;
 use Ingenico_Connect_Model_Method_HostedCheckout as HostedCheckout;
-use \Ingenico\Connect\Sdk\Domain\Hostedcheckout\CreateHostedCheckoutRequest;
-use \Ingenico\Connect\Sdk\Domain\Payment\CreatePaymentRequest;
 
 /**
  * Builder for Ingenico requests like CreateHostedCheckoutRequest and CreatePaymentRequest.
@@ -33,11 +33,6 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_RequestBuilder
     private $config;
 
     /**
-     * @var Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_FraudFieldsBuilder
-     */
-    private $fraudFieldsBuilder;
-
-    /**
      * @var DecoratorPool
      */
     private $decoratorPool;
@@ -51,9 +46,6 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_RequestBuilder
         $this->merchantBuilder = Mage::getSingleton('ingenico_connect/ingenico_requestBuilder_common_merchantBuilder');
         $this->config = Mage::getSingleton('ingenico_connect/config');
         $this->decoratorPool = Mage::getSingleton('ingenico_connect/ingenico_requestBuilder_decoratorPool');
-        $this->fraudFieldsBuilder = Mage::getSingleton(
-            'ingenico_connect/ingenico_requestBuilder_common_fraudFieldsBuilder'
-        );
     }
 
     /**
@@ -64,7 +56,6 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_RequestBuilder
      */
     public function create($ingenicoRequest, Mage_Sales_Model_Order $order)
     {
-        $ingenicoRequest->fraudFields = $this->fraudFieldsBuilder->create();
         $ingenicoRequest->order = $this->orderBuilder->create($order);
         $ingenicoRequest->merchant = $this->merchantBuilder->create($order);
 

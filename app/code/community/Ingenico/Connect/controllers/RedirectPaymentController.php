@@ -29,17 +29,6 @@ class Ingenico_Connect_RedirectPaymentController extends Mage_Core_Controller_Fr
      */
     protected $retrievePaymentAction;
 
-    public function _construct()
-    {
-        parent::_construct();
-
-        $this->checkoutSession = Mage::getSingleton('checkout/session');
-        $this->orderModel = Mage::getModel('sales/order');
-        $this->epaymentsHelper = Mage::helper('ingenico_connect');
-        $this->cart = Mage::getSingleton('checkout/cart');
-        $this->retrievePaymentAction = Mage::getModel('ingenico_connect/ingenico_retrievePayment');
-    }
-
     /**
      * When a customer returns to website from a redirect payment.
      *
@@ -47,38 +36,40 @@ class Ingenico_Connect_RedirectPaymentController extends Mage_Core_Controller_Fr
      */
     public function returnAction()
     {
-        $orderId = $this->checkoutSession->getLastOrderId();
+        $cartModel = Mage::getSingleton('checkout/cart');
+        $checkoutSession = Mage::getSingleton('checkout/session');
 
+        $orderId = $checkoutSession->getLastOrderId();
         if (!$orderId) {
             $this->_redirect('checkout/cart');
             return;
         }
 
         /** @var Mage_Sales_Model_Order $order */
-        $order = $this->orderModel->load($orderId);
+        $order = Mage::getModel('sales/order')->load($orderId);
 
         try {
-            $this->retrievePaymentAction->process($order);
+            Mage::getModel('ingenico_connect/ingenico_retrievePayment')->process($order);
             $paymentStatus = $order->getPayment()->getAdditionalInformation(HostedCheckout::PAYMENT_STATUS_KEY);
-            $info = $this->epaymentsHelper->getPaymentStatusInfo($paymentStatus);
+            $info = Mage::helper('ingenico_connect')->getPaymentStatusInfo($paymentStatus);
             if ($info) {
-                $this->checkoutSession->addSuccess($this->__('Payment status:') . ' ' . $info);
+                $checkoutSession->addSuccess($this->__('Payment status:') . ' ' . $info);
             }
 
             $this->_redirect('checkout/onepage/success');
             return;
         } catch (Exception $e) {
-            $this->checkoutSession->addError($e->getMessage());
+            $checkoutSession->addError($e->getMessage());
             Mage::logException($e);
         }
 
         if ($order->isCanceled()) {
             $items = $order->getItemsCollection();
             foreach ($items as $item) {
-                $this->cart->addOrderItem($item);
+                $cartModel->addOrderItem($item);
             }
 
-            $this->cart->save();
+            $cartModel->save();
         }
 
         $this->_redirect('checkout/cart');

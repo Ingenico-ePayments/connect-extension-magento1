@@ -11,6 +11,9 @@ use Ingenico_Connect_Model_Ingenico_StatusInterface as StatusInterface;
  */
 class Ingenico_Connect_Model_Observer
 {
+    const KEY_FLAG_STATE_SHOULD_BE_PENDING = 'flag_state_should_be_pending';
+    const KEY_FLAG_STATE_SHOULD_BE_PENDING_PAYMENT = 'flag_state_should_be_pending_payment';
+
     /**
      * @var Ingenico_Connect_Model_StatusResponseManager
      */
@@ -19,7 +22,7 @@ class Ingenico_Connect_Model_Observer
     /**
      * @var int[]
      */
-    protected $codesToOverWrite = array(800, 900, 975);
+    protected $codesToOverWrite = [800, 900, 975];
 
     /**
      * Ingenico_Connect_Model_Observer constructor.
@@ -43,6 +46,8 @@ class Ingenico_Connect_Model_Observer
 
         if (!empty($orderState)) {
             $paymentId = $order->getPayment()->getAdditionalInformation(HostedCheckout::PAYMENT_ID_KEY);
+            $hostedCheckoutId = $order->getPayment()->getAdditionalInformation(HostedCheckout::HOSTED_CHECKOUT_ID_KEY);
+            $canRefreshPaymentStatus = $paymentId || $hostedCheckoutId;
 
             $isViewBlock = $block instanceof Mage_Adminhtml_Block_Sales_Order_View;
             $isIngenicoOrder = Mage::helper('ingenico_connect')->isIngenicoOrder($order);
@@ -51,14 +56,14 @@ class Ingenico_Connect_Model_Observer
                 $clickUrl = $block->getUrl('*/orderProcessing/refreshOrderStatus');
                 $block->addButton(
                     'refresh_payment_status',
-                    array(
+                    [
                         'label' => Mage::helper('ingenico_connect')->__('Refresh Payment Status'),
-                        'onclick' => empty($paymentId) ? '' : "confirmSetLocation('{$message}', '{$clickUrl}')",
+                        'onclick' => $canRefreshPaymentStatus === false ? '' : "confirmSetLocation('{$message}', '{$clickUrl}')",
                         'class' => sprintf(
                             'go%s',
-                            empty($paymentId) ? ' disabled' : ''
-                        )
-                    )
+                            $canRefreshPaymentStatus === false ? ' disabled' : ''
+                        ),
+                    ]
                 );
             }
         }
@@ -89,8 +94,8 @@ class Ingenico_Connect_Model_Observer
     protected function isValidToRefreshStatus(Mage_Sales_Model_Order $order)
     {
         return !$order->isCanceled()
-                && $order->getState() !== Mage_Sales_Model_Order::STATE_COMPLETE
-                && $order->getState() !== Mage_Sales_Model_Order::STATE_CLOSED;
+            && $order->getState() !== Mage_Sales_Model_Order::STATE_COMPLETE
+            && $order->getState() !== Mage_Sales_Model_Order::STATE_CLOSED;
     }
 
     /**
@@ -134,7 +139,7 @@ class Ingenico_Connect_Model_Observer
             if ($isHostedCheckout && $isRefundable) {
                 $refundUrl = $block->getUrl(
                     '*/refundProcessing/approveCreditMemo',
-                    array('creditmemo_id' => $block->getCreditmemo()->getId())
+                    ['creditmemo_id' => $block->getCreditmemo()->getId()]
                 );
                 $block->updateButton(
                     'refund',
@@ -200,10 +205,10 @@ class Ingenico_Connect_Model_Observer
      */
     protected function shouldReplaceHandler(AbstractOrderStatus $ingenicoStatus)
     {
-        return ($ingenicoStatus instanceof Payment || $ingenicoStatus instanceof  Capture)
-                && $this->getMethod($ingenicoStatus) === 'card'
-                && $ingenicoStatus->status === StatusInterface::CAPTURE_REQUESTED
-                && in_array($ingenicoStatus->statusOutput->statusCode, $this->codesToOverWrite, true);
+        return ($ingenicoStatus instanceof Payment || $ingenicoStatus instanceof Capture)
+            && $this->getMethod($ingenicoStatus) === 'card'
+            && $ingenicoStatus->status === StatusInterface::CAPTURE_REQUESTED
+            && in_array($ingenicoStatus->statusOutput->statusCode, $this->codesToOverWrite, true);
     }
 
     /**
@@ -222,5 +227,33 @@ class Ingenico_Connect_Model_Observer
         }
 
         return $method;
+    }
+
+    /**
+     * @param Varien_Event_Observer $observer
+     */
+    public function overrideOrderStatus(Varien_Event_Observer $observer)
+    {
+        $payment = $observer->getEvent()->getData('payment');
+
+        if ($payment instanceof Mage_Sales_Model_Order_Payment) {
+            $order = $payment->getOrder();
+        } else {
+            $order = $observer->getEvent()->getData('order');
+        }
+
+        if (!$order instanceof Mage_Sales_Model_Order || $order->getPayment()->getMethod() !== 'hosted_checkout') {
+            return;
+        }
+
+        if ($order->getData(self::KEY_FLAG_STATE_SHOULD_BE_PENDING)) {
+            $order->setState(Mage_Sales_Model_Order::STATE_NEW);
+            $order->setStatus('pending');
+        }
+
+        if ($order->getData(self::KEY_FLAG_STATE_SHOULD_BE_PENDING_PAYMENT)) {
+            $order->setState(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
+            $order->setStatus(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
+        }
     }
 }

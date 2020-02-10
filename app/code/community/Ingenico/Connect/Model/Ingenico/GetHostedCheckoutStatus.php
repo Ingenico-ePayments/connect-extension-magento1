@@ -106,20 +106,29 @@ class Ingenico_Connect_Model_Ingenico_GetHostedCheckoutStatus implements ActionI
             }
 
             // save the order before sendNewOrderEmail is called due to possible unexpected behaviour in CE1.8
-            $order->save();
-
-            $this->createTransactionIfNotExists($statusResponse, $order);
+            try {
+                $order->save();
+            } catch (Exception $exception) {
+                Mage::logException($exception);
+            }
 
             try {
                 $order->sendNewOrderEmail();
             } catch (Exception $e) {
                 Mage::logException($e);
             }
-        } elseif ($statusResponse->status === self::PAYMENT_CANCELED_BY_CUSTOMER) {
+
+            return $order;
+        }
+
+        if ($statusResponse->status === self::PAYMENT_CANCELED_BY_CUSTOMER) {
             $order->registerCancellation('You canceled your payment');
+        }
+
+        try {
             $order->save();
-        } else {
-            $order->save();
+        } catch(Exception $exception) {
+            Mage::logException($exception);
         }
 
         return $order;
@@ -191,9 +200,12 @@ class Ingenico_Connect_Model_Ingenico_GetHostedCheckoutStatus implements ActionI
      */
     protected function checkReturnMac(Mage_Sales_Model_Order $order)
     {
-        $orderReturnmac = $order->getPayment()->getAdditionalInformation(HostedCheckout::RETURNMAC_KEY);
         $returnmac = Mage::app()->getRequest()->get(self::RETURNMAC);
+        if ($returnmac === null) {
+            return;
+        }
 
+        $orderReturnmac = $order->getPayment()->getAdditionalInformation(HostedCheckout::RETURNMAC_KEY);
         if ($returnmac !== $orderReturnmac) {
             Mage::throwException($this->helper->__('RETURNMAC doesn\'t match.'));
         }

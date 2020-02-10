@@ -25,15 +25,18 @@ class Ingenico_Connect_Model_Cron_CancelPendingOrders
     /**
      * Cancel pending orders, which are older then number days (look at admin Ingenico configuration).
      * Called via cron each day at 5a.m.
-     *
-     * @return Ingenico_Connect_Model_Cron
      */
     public function execute()
     {
         /** @var Ingenico_Connect_Model_Resource_Order_Collection $orderCollection */
         $orderCollection = Mage::getResourceModel('ingenico_connect/order_collection');
-        $cancelationPeriod = Mage::getSingleton('ingenico_connect/config')->getPendingOrdersCancellationPeriod();
-        $orderCollection->addPendingStatusFilter()->addCreatedAtFilter($cancelationPeriod);
+        $cancellationPeriod = (int) Mage::getSingleton('ingenico_connect/config')->getPendingOrdersCancellationPeriod();
+        if ($cancellationPeriod < 1) {
+            Mage::log('Cancellation period for stale orders should at least be 1 day', Zend_Log::WARN, $this->logfile);
+            return;
+        }
+
+        $orderCollection->addPendingStatusFilter()->addCreatedAtFilter($cancellationPeriod);
         /** @var Mage_Sales_Model_Order $order */
         foreach ($orderCollection as $order) {
             Mage::log(
@@ -66,7 +69,5 @@ class Ingenico_Connect_Model_Cron_CancelPendingOrders
         }
 
         $orderCollection->save();
-
-        return $this;
     }
 }

@@ -33,13 +33,16 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_Order_Customer_Devic
             $ingenicoDevice->acceptHeader = $acceptHeader;
         }
 
+        $ingenicoDevice->ipAddress = $order->getRemoteIp();
+
         return $ingenicoDevice;
     }
 
     /**
      * @return string|null
      */
-    protected function getAcceptHeader() {
+    protected function getAcceptHeader()
+    {
         try {
             $acceptHeader = Mage::app()->getRequest()->getHeader('Accept');
             if (!$acceptHeader) {
@@ -50,6 +53,5 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_Order_Customer_Devic
             Mage::logException($exception);
             return null;
         }
-
     }
 }

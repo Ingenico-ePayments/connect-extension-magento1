@@ -35,5 +35,13 @@ class Ingenico_Connect_Model_Ingenico_Status_Redirected implements HandlerInterf
          * a later online capture is impossible
          */
         $order->getPayment()->setIsTransactionClosed(false);
+
+        /**
+         * Mark the transaction as pending, otherwise the invoice will be marked as "paid"
+         * and the order will be set to "processing"
+         */
+        $order->getPayment()->setIsTransactionPending(true);
+
+        $order->setData(Ingenico_Connect_Model_Observer::KEY_FLAG_STATE_SHOULD_BE_PENDING, true);
     }
 }

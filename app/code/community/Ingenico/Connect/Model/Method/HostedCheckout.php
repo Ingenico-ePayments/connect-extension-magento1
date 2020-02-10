@@ -214,8 +214,8 @@ class Ingenico_Connect_Model_Method_HostedCheckout extends Mage_Payment_Model_Me
         $order = $info->getOrder();
         $this->ingenicoCreateHostedCheckout->create($order);
 
-        $stateObject->setState(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
-        $stateObject->setStatus(Mage_Sales_Model_Order::STATE_PENDING_PAYMENT);
+        $stateObject->setState(Mage_Sales_Model_Order::STATE_NEW);
+        $stateObject->setStatus('pending');
         $stateObject->setIsNotified(false);
 
         return $this;
