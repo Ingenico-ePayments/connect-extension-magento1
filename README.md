@@ -10,8 +10,8 @@ To use this extension you need to have an Ingenico ePayments account.
 
 This extension is compatible with the following versions of Magento:
 
-- **CE / Open Source**: 1.8 and upward
-- **EE / Commerce**: 1.13 and upward
+- **CE / Open Source**: 1.9.3.6 and upward
+- **EE / Commerce**: 1.14.3.6 and upward
 
 This extension is compatible with PHP 5.6, 7.0, 7.1 and 7.2.
 

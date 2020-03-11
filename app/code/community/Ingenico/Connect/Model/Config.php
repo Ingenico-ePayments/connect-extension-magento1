@@ -76,11 +76,11 @@ class Ingenico_Connect_Model_Config implements Ingenico_Connect_Model_ConfigInte
     }
 
     /**
-     * @return Mage_Core_Model_Config_Element
+     * @return string
      */
     public function getVersion()
     {
-        return Mage::getConfig()->getNode('modules/Ingenico_Connect/version');
+        return (string) Mage::getConfig()->getNode('modules/Ingenico_Connect/version');
     }
 
     /**
@@ -303,9 +303,29 @@ class Ingenico_Connect_Model_Config implements Ingenico_Connect_Model_ConfigInte
     /**
      * (@inheritDoc}
      */
+    public function getShoppingCartExtensionName()
+    {
+        return 'M1.Connect';
+    }
+
+    /**
+     * (@inheritDoc}
+     */
     public function getIntegrator()
     {
-        return 'Magento_' . Mage::getVersion() . '_' . Mage::getEdition();
+        return 'Ingenico';
+    }
+
+    /**
+     * (@inheritDoc}
+     */
+    public function getMagentoVersion()
+    {
+        return sprintf(
+            'M%s %s',
+            Mage::getVersion(),
+            Mage::getEdition()
+        );
     }
 
     /**

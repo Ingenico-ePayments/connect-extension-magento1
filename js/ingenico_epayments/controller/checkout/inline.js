@@ -78,6 +78,10 @@ var InlineController = Class.create(AbstractCheckoutController, {
         /** Reformat product fields on input */
         var productFields = input.parentElement.querySelectorAll('.ingenico_field input');
         for (var fieldInput of productFields) {
+            if (fieldInput.id.indexOf('tokenize') !== -1) {
+                continue;
+            }
+
             fieldInput.addEventListener('input', function(event) {
                 this.productFieldValidator.format(event.target.value, event.target);
             }.bind(this));

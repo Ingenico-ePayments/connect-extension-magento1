@@ -1,6 +1,5 @@
 <?php
 
-use \Ingenico\Connect\Sdk\CommunicatorConfiguration;
 use \Ingenico\Connect\Sdk\Client;
 use \Ingenico\Connect\Sdk\DefaultConnection;
 use \Ingenico\Connect\Sdk\Domain\Payment\CreatePaymentRequest;
@@ -9,6 +8,7 @@ use \Ingenico\Connect\Sdk\Domain\Sessions\SessionRequest;
 use Ingenico_Connect_Model_Ingenico_Api_ClientInterface as ClientInterface;
 use Ingenico_Connect_Model_Ingenico_Client_Communicator as Communicator;
 use Ingenico_Connect_Model_Ingenico_Client_CommunicatorLogger as CommunicatorLogger;
+use Ingenico_Connect_Model_Ingenico_Client_Communicator_ConfigurationBuilder as ConfigurationBuilder;
 
 /**
  * Class Ingenico_Connect_Model_Ingenico_Client
@@ -26,6 +26,11 @@ class Ingenico_Connect_Model_Ingenico_Client implements ClientInterface
     protected $ingenicoClient = array();
 
     /**
+     * @var ConfigurationBuilder
+     */
+    private $communicatorConfigBuilder;
+
+    /**
      * Ingenico_Connect_Model_Ingenico_Client constructor.
      * @param array $args
      */
@@ -41,6 +46,7 @@ class Ingenico_Connect_Model_Ingenico_Client implements ClientInterface
         }
 
         $this->ePaymentsConfig = $ePaymentsConfig;
+        $this->communicatorConfigBuilder = Mage::getSingleton('ingenico_connect/ingenico_client_communicator_configurationBuilder');
     }
 
     /**
@@ -49,8 +55,8 @@ class Ingenico_Connect_Model_Ingenico_Client implements ClientInterface
     protected function initialize($scopeId)
     {
         if (!isset($this->ingenicoClient[$scopeId])) {
-            $communicatorConfig = $this->getCommunicatorConfig($scopeId);
-            $secondaryCommunicatorConfig = $this->getCommunicatorConfig(
+            $communicatorConfig = $this->communicatorConfigBuilder->build($scopeId);
+            $secondaryCommunicatorConfig = $this->communicatorConfigBuilder->build(
                 $scopeId,
                 array(
                     'api_endpoint' => $this->ePaymentsConfig->getSecondaryApiEndpoint(),
@@ -113,35 +119,13 @@ class Ingenico_Connect_Model_Ingenico_Client implements ClientInterface
      */
     public function ingenicoTestAccount($scopeId = null, $data = array())
     {
-        $client = $this->buildClient($scopeId, $this->getCommunicatorConfig($scopeId, $data));
+        $client = $this->buildClient($scopeId, $this->communicatorConfigBuilder->build($scopeId, $data));
         $response = $client
             ->merchant($data['merchant_id'])
             ->services()
             ->testconnection();
 
         return $response;
-    }
-
-    /**
-     * @param int|null $scopeId
-     * @param array $data
-     * @return CommunicatorConfiguration
-     */
-    protected function getCommunicatorConfig($scopeId = null, $data = array())
-    {
-        $apiKey = !empty($data['api_key']) ? $data['api_key'] : $this->ePaymentsConfig->getApiKey($scopeId);
-        $apiSecret = !empty($data['api_secret']) ? $data['api_secret'] : $this->ePaymentsConfig->getApiSecret($scopeId);
-        $apiEndpoint = !empty($data['api_endpoint']) ?
-            $data['api_endpoint'] : $this->ePaymentsConfig->getApiEndpoint($scopeId);
-
-        $communicatorConfig = new CommunicatorConfiguration(
-            $apiKey,
-            $apiSecret,
-            $apiEndpoint,
-            $this->ePaymentsConfig->getIntegrator()
-        );
-
-        return $communicatorConfig;
     }
 
     /**

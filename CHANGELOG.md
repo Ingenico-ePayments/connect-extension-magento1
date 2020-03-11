@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## 2.1.1 - 2020-03-11
+
+### Changed
+
+- Changed the server meta data that is sent to Ingenico to include Magento and module version.
+- Fixes JavaScript error for inline payments for guest customers.
+- Fixes `addFilterByCustomerId` error when using an old version of Magento 1.
+- Dropped support for Magento Community versions prior to 1.9.3.6 (released on September 2017).
+- Dropped support for Magento Enterprise versions prior to 1.14.3.6 (released on September 2017).
+
 ## 2.1.0 - 2020-01-21
 
 ### Changed

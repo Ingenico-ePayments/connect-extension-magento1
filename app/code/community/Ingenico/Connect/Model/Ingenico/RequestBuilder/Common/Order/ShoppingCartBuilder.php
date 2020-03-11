@@ -71,7 +71,15 @@ class Ingenico_Connect_Model_Ingenico_RequestBuilder_Common_Order_ShoppingCartBu
         $orderItemCollection->filterByParent();
         $orderItemCollection->addFieldToFilter('order_id', ['neq' => $order->getId()]);
         $orderItemCollection->addFieldToFilter('sku', ['in' => $this->getVisibleSkusFromOrder($order)]);
-        $orderItemCollection->addFilterByCustomerId($order->getCustomerId());
+        if (method_exists($orderItemCollection, 'addFilterByCustomerId')) {
+            $orderItemCollection->addFilterByCustomerId($order->getCustomerId());
+        } else {
+            // Support for Magento versions prior to 1.9.3.6:
+            $orderItemCollection->getSelect()->joinInner(
+                ['order' => $orderItemCollection->getTable('sales/order')],
+                'main_table.order_id = order.entity_id', [])
+                ->where('order.customer_id IN(?)', $order->getCustomerId());
+        }
         $orderItemCollection->addFieldToFilter('order.total_due', ['lt' => '0.01']);
         return $orderItemCollection->getSize() > 0;
     }

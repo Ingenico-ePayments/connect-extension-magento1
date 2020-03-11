@@ -164,6 +164,16 @@ interface Ingenico_Connect_Model_ConfigInterface
     public function getIntegrator();
 
     /**
+     * @return string
+     */
+    public function getShoppingCartExtensionName();
+
+    /**
+     * @return string
+     */
+    public function getMagentoVersion();
+
+    /**
      * @param int|null $storeId
      * @return mixed
      */

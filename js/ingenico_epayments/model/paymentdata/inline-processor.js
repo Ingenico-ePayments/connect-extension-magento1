@@ -71,6 +71,10 @@ var InlinePaymentDataProcessor = Class.create(GenericPaymentDataProcessor, {
         var isValid = true;
         var inputs = document.querySelectorAll('.ingenico_field input, .ingenico_field select');
         for (var input of inputs) {
+            if (input.id.indexOf('tokenize') !== -1) {
+                continue;
+            }
+
             if (this.isVisible(input)) {
                 if (this.validator.validate(input.value, input) === false) {
                     isValid = false;
